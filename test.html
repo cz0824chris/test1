@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 釜山孝親團 (含分帳系統)</title>
+    <title>2026 釜山孝親團 (含分帳個別刪除)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,10 +31,10 @@
                 <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團 · 雲端同步</p>
             </div>
             <div class="flex gap-2">
-                <div @click="showBillModal = true" class="bg-amber-400 text-amber-900 p-2 rounded-lg shadow-sm cursor-pointer">
+                <div @click="showBillModal = true" class="bg-amber-400 text-amber-900 p-2 rounded-lg shadow-sm cursor-pointer hover:bg-amber-300 transition">
                     <i class="fas fa-calculator"></i> <span class="text-xs font-bold">分帳</span>
                 </div>
-                <div @click="showAddDayModal = true" class="bg-white text-teal-600 p-2 rounded-lg shadow-sm cursor-pointer">
+                <div @click="showAddDayModal = true" class="bg-white text-teal-600 p-2 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 transition">
                     <i class="fas fa-plus"></i> <span class="text-xs font-bold">增加天數</span>
                 </div>
             </div>
@@ -62,12 +62,12 @@
         <div class="bg-white rounded-3xl p-5 shadow-md border border-gray-50 flex justify-between items-center">
             <div>
                 <h2 class="text-xl font-bold text-gray-800">{{ days[currentDayIndex]?.dateLabel }} {{ days[currentDayIndex]?.weekDay }}</h2>
-                <p class="text-gray-400 text-xs">釜山 · {{ weatherInfo.desc }}</p>
+                <p class="text-gray-400 text-xs">釜山 · 多雲時晴</p>
             </div>
             <div class="text-right">
                 <div class="flex items-center gap-1 text-indigo-600 font-bold">
-                    <i :class="weatherInfo.icon"></i>
-                    <span>{{ weatherInfo.temp }}</span>
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>4° - 18°</span>
                 </div>
             </div>
         </div>
@@ -103,38 +103,41 @@
         <div class="bg-white w-full h-[85vh] rounded-t-[40px] p-6 overflow-y-auto animate-slide-up relative">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-coins mr-2 text-amber-500"></i>分帳系統</h3>
-                <button @click="showBillModal = false" class="text-gray-400 text-2xl">&times;</button>
+                <button @click="showBillModal = false" class="text-gray-400 text-2xl hover:text-gray-600 transition">×</button>
             </div>
 
             <div class="bg-amber-50 p-4 rounded-2xl mb-6">
-                <p class="text-xs font-bold text-amber-700 mb-3">新增一筆開銷</p>
+                <p class="text-xs font-bold text-amber-700 mb-3 underline">新增一筆支出</p>
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <input v-model="newBill.name" type="text" placeholder="付款人姓名" class="p-3 rounded-xl border-none text-sm">
-                    <input v-model="newBill.amount" type="number" placeholder="金額" class="p-3 rounded-xl border-none text-sm">
+                    <input v-model="newBill.name" type="text" placeholder="付款人姓名" class="p-3 rounded-xl border-none text-sm shadow-sm focus:ring-2 focus:ring-amber-300">
+                    <input v-model="newBill.amount" type="number" placeholder="金額" class="p-3 rounded-xl border-none text-sm shadow-sm focus:ring-2 focus:ring-amber-300">
                 </div>
-                <input v-model="newBill.item" type="text" placeholder="項目 (例如: 午餐)" class="w-full p-3 rounded-xl border-none text-sm mb-3">
-                <button @click="addBill" class="w-full bg-amber-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-amber-600 transition">加入帳目</button>
+                <input v-model="newBill.item" type="text" placeholder="項目內容 (如：午餐)" class="w-full p-3 rounded-xl border-none text-sm mb-3 shadow-sm focus:ring-2 focus:ring-amber-300">
+                <button @click="addBill" class="w-full bg-amber-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-amber-600 active:scale-95 transition">加入帳目</button>
             </div>
 
-            <div class="space-y-6">
+            <div class="space-y-6 pb-10">
                 <div>
                     <h4 class="text-sm font-bold text-gray-500 mb-3 border-l-4 border-amber-500 pl-2">每人代墊總額</h4>
                     <div class="flex flex-wrap gap-2">
-                        <div v-for="(total, name) in personalTotals" :key="name" class="bg-white border border-gray-100 p-3 rounded-xl shadow-sm">
-                            <span class="text-xs text-gray-400 block">{{ name }}</span>
+                        <div v-for="(total, name) in personalTotals" :key="name" class="bg-white border border-amber-100 px-4 py-2 rounded-xl shadow-sm">
+                            <span class="text-[10px] text-gray-400 block">{{ name }}</span>
                             <span class="text-sm font-black text-amber-600">${{ total }}</span>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <h4 class="text-sm font-bold text-gray-500 mb-3 border-l-4 border-indigo-500 pl-2">分帳建議 (平分)</h4>
+                    <h4 class="text-sm font-bold text-gray-500 mb-3 border-l-4 border-indigo-500 pl-2">結算建議 (平分)</h4>
                     <div class="bg-indigo-50 p-4 rounded-2xl space-y-2">
-                        <p v-if="splitResults.length === 0" class="text-xs text-gray-400 text-center py-2">目前帳目平衡或尚無資料</p>
-                        <div v-for="res in splitResults" class="flex items-center justify-between text-sm bg-white p-3 rounded-lg shadow-sm">
+                        <p v-if="splitResults.length === 0" class="text-xs text-gray-400 text-center py-2 italic">目前帳目平衡或尚無資料</p>
+                        <div v-for="res in splitResults" class="flex items-center justify-between text-sm bg-white p-3 rounded-lg shadow-sm border border-indigo-100">
                             <span class="font-bold text-gray-700">{{ res.from }}</span>
-                            <i class="fas fa-long-arrow-alt-right text-indigo-300"></i>
-                            <span class="text-indigo-600 font-bold">${{ res.amount }}</span>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] text-indigo-400 font-bold">支付給</span>
+                                <i class="fas fa-long-arrow-alt-right text-indigo-300"></i>
+                            </div>
+                            <span class="text-indigo-600 font-black">${{ res.amount }}</span>
                             <i class="fas fa-long-arrow-alt-right text-indigo-300"></i>
                             <span class="font-bold text-gray-700">{{ res.to }}</span>
                         </div>
@@ -143,18 +146,20 @@
 
                 <div>
                     <div class="flex justify-between items-center mb-3">
-                        <h4 class="text-sm font-bold text-gray-500 border-l-4 border-gray-300 pl-2">消費明細</h4>
-                        <button @click="clearBills" class="text-[10px] text-red-400 underline">全部清空</button>
+                        <h4 class="text-sm font-bold text-gray-500 border-l-4 border-gray-300 pl-2">支出明細清單</h4>
+                        <button @click="clearBills" class="text-[10px] text-red-500 font-bold hover:underline">一鍵重設</button>
                     </div>
                     <div class="space-y-2">
-                        <div v-for="(b, idx) in bills" :key="idx" class="flex justify-between items-center bg-gray-50 p-3 rounded-xl text-xs">
-                            <div>
-                                <span class="font-bold text-gray-700 mr-2">{{ b.name }}</span>
-                                <span class="text-gray-400">{{ b.item }}</span>
+                        <div v-for="(b, idx) in bills" :key="idx" class="flex justify-between items-center bg-gray-50 p-3 rounded-xl text-xs border border-gray-100 group">
+                            <div class="flex-1">
+                                <span class="font-bold text-teal-700 block">{{ b.name }}</span>
+                                <span class="text-gray-500">{{ b.item }}</span>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <span class="font-black text-gray-600">${{ b.amount }}</span>
-                                <button @click="deleteBill(idx)" class="text-gray-300"><i class="fas fa-trash"></i></button>
+                            <div class="flex items-center gap-4">
+                                <span class="font-black text-gray-700">${{ b.amount }}</span>
+                                <button @click="deleteBill(idx)" class="text-red-300 hover:text-red-500 p-2 transition">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -165,20 +170,20 @@
 
     <div v-if="showModal" class="fixed inset-0 bg-black/60 z-50 flex items-end" @click.self="showModal = false">
         <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">新增行程</h3>
-            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
-            <input v-model="newItem.location" type="text" placeholder="目的地" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
-            <input v-model="newItem.note" type="text" placeholder="備註" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none">
-            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold">雲端儲存</button>
+            <h3 class="text-xl font-bold text-gray-800 mb-6">新增行程內容</h3>
+            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none shadow-inner">
+            <input v-model="newItem.location" type="text" placeholder="目的地" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none shadow-inner">
+            <input v-model="newItem.note" type="text" placeholder="備註" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none shadow-inner">
+            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition">同步至雲端</button>
         </div>
     </div>
 
     <div v-if="showAddDayModal" class="fixed inset-0 bg-black/60 z-50 flex items-end" @click.self="showAddDayModal = false">
         <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">新增天數</h3>
-            <input v-model="newDayDate" type="text" placeholder="2/27" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
-            <input v-model="newDayWeek" type="text" placeholder="(五)" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none">
-            <button @click="addNewDay" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold">確認新增</button>
+            <h3 class="text-xl font-bold text-gray-800 mb-6">新增旅行天數</h3>
+            <input v-model="newDayDate" type="text" placeholder="2/27" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none shadow-inner">
+            <input v-model="newDayWeek" type="text" placeholder="(五)" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none shadow-inner">
+            <button @click="addNewDay" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition">確認新增</button>
         </div>
     </div>
 </div>
@@ -200,7 +205,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const travelRef = db.ref('busan_luxury_travel_v1');
-    const billRef = db.ref('busan_bills_v1'); // 分帳專用路徑
+    const billRef = db.ref('busan_bills_v1');
 
     createApp({
         setup() {
@@ -215,10 +220,8 @@
             const newDayDate = ref('');
             const newDayWeek = ref('');
             const newBill = ref({ name: '', amount: null, item: '' });
-            
-            const weatherInfo = ref({ temp: '--°', icon: 'fas fa-sun', desc: '多雲時晴' });
 
-            // --- 分帳邏輯 ---
+            // 計算每人總額
             const personalTotals = computed(() => {
                 const totals = {};
                 bills.value.forEach(b => {
@@ -227,6 +230,7 @@
                 return totals;
             });
 
+            // 分帳核心演算法
             const splitResults = computed(() => {
                 const names = Object.keys(personalTotals.value);
                 if (names.length < 2) return [];
@@ -261,6 +265,7 @@
                 return results;
             });
 
+            // 行動：新增分帳
             const addBill = () => {
                 if (newBill.value.name && newBill.value.amount) {
                     bills.value.push({ ...newBill.value });
@@ -269,19 +274,23 @@
                 }
             };
 
+            // 行動：個別刪除分帳 (關鍵更新)
             const deleteBill = (idx) => {
-                bills.value.splice(idx, 1);
-                billRef.set(bills.value);
-            };
-
-            const clearBills = () => {
-                if(confirm('確定要清空所有帳目嗎？')) {
-                    bills.value = [];
-                    billRef.set(null);
+                const deletedItem = bills.value[idx];
+                if (confirm(`確定要刪除「${deletedItem.name}：${deletedItem.item} $${deletedItem.amount}」這筆帳目嗎？`)) {
+                    bills.value.splice(idx, 1);
+                    billRef.set(bills.value);
                 }
             };
 
-            // --- 行程邏輯 ---
+            const clearBills = () => {
+                if(confirm('警告：這將會清除所有歷史帳目！確定嗎？')) {
+                    bills.value = [];
+                    billRef.remove();
+                }
+            };
+
+            // 資料同步
             onMounted(() => {
                 travelRef.on('value', snap => { if(snap.val()) days.value = snap.val(); });
                 billRef.on('value', snap => { bills.value = snap.val() || []; });
@@ -290,7 +299,7 @@
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
             const mapUrl = computed(() => {
                 const locs = currentDayItems.value.map(i => i.location).filter(l => l);
-                return locs.length ? `https://www.google.com/maps/dir/My+Location/1{encodeURIComponent(locs.join(' '))}&t=&z=13&ie=UTF8&iwloc=&output=embed` : null;
+                return locs.length ? `https://maps.google.com/maps?q=${encodeURIComponent(locs.join(' '))}&output=embed` : null;
             });
 
             const saveItem = () => {
@@ -313,20 +322,18 @@
             };
 
             const deleteCurrentDay = () => {
-                if (confirm('刪除這天？')) {
+                if (confirm('確定刪除整天行程？')) {
                     days.value.splice(currentDayIndex.value, 1);
                     currentDayIndex.value = 0;
                     travelRef.set(days.value);
                 }
             };
 
-            const openGoogleMaps = () => window.open(`https://www.google.com/maps/dir/My+Location/2{encodeURIComponent(currentDayItems.value.map(i => i.location).join(' '))}`);
-
             return { 
                 days, bills, currentDayIndex, currentDayItems, showModal, showAddDayModal, showBillModal,
-                newItem, newDayDate, newDayWeek, newBill, weatherInfo, mapUrl,
+                newItem, newDayDate, newDayWeek, newBill, mapUrl,
                 personalTotals, splitResults, addBill, deleteBill, clearBills,
-                saveItem, deleteItem, addNewDay, deleteCurrentDay, openGoogleMaps 
+                saveItem, deleteItem, addNewDay, deleteCurrentDay
             };
         }
     }).mount('#app')
