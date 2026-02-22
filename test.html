@@ -25,11 +25,14 @@
     <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-2xl font-bold italic">Busan 2026 🇰🇷</h1>
-                <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團 · 海鮮饗宴</p>
+                <h1 class="text-2xl font-bold italic">2026 韓國釜山旅遊</h1>
+                <p class="text-[10px] opacity-90 tracking-widest mt-1">四天三夜</p>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] bg-white/20 px-2 py-1 rounded-lg">Hotel: New CZ Nampo</span>
+            <div class="flex gap-2">
+                <div class="bg-white/20 p-2 rounded-lg text-sm"><i class="fas fa-language"></i></div>
+                <div class="bg-white p-2 rounded-lg text-teal-600 shadow-sm"><i class="fas fa-calendar-alt"></i></div>
+                <div class="bg-white/20 p-2 rounded-lg text-sm"><i class="fas fa-map"></i></div>
+                <div class="bg-white/20 p-2 rounded-lg text-sm"><i class="fas fa-dollar-sign"></i></div>
             </div>
         </div>
 
@@ -45,7 +48,23 @@
         </div>
     </div>
 
-    <div class="px-5 -mt-4 mb-6">
+    <div class="px-5 mt-4 mb-4">
+        <div class="bg-white rounded-3xl p-5 shadow-md border border-gray-50 flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">{{ days[currentDayIndex]?.dateLabel }} {{ days[currentDayIndex]?.weekDay }}</h2>
+                <p class="text-gray-400 text-xs">抵達 & 探索</p>
+            </div>
+            <div class="text-right">
+                <div class="flex items-center gap-1 text-indigo-600 font-bold">
+                    <i class="fas fa-sun"></i>
+                    <span>0° - 10°</span>
+                </div>
+                <p class="text-[9px] text-gray-300 italic">釜山 (預報)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5 mb-6">
         <div class="bg-white rounded-3xl overflow-hidden card-shadow border border-gray-50">
             <div class="h-48 w-full bg-gray-100 relative">
                 <iframe 
@@ -67,6 +86,10 @@
     </div>
 
     <main class="px-5">
+        <div class="border-2 border-dashed border-gray-200 rounded-3xl p-4 text-center text-gray-400 text-sm mb-6">
+            <i class="fas fa-plane-arrival mr-2 text-teal-main/50"></i> 新增當日航班資訊
+        </div>
+
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-bold text-gray-800">
                 <i class="far fa-clock mr-2"></i>行程詳情
@@ -126,7 +149,7 @@
             // 預設行程資料
             const defaultDays = [
                 {
-                    dateLabel: '2/23', weekDay: 'Mon',
+                    dateLabel: '2/23', weekDay: '(一)',
                     items: [
                         { time: '17:00', location: '釜山金海機場', note: '抵達' },
                         { time: '18:00', location: '機場大車接送', note: '直達飯店' },
@@ -137,7 +160,7 @@
                     ]
                 },
                 {
-                    dateLabel: '2/24', weekDay: 'Tue',
+                    dateLabel: '2/24', weekDay: '(二)',
                     items: [
                         { time: '09:30', location: '飯店門口', note: '包車一日遊開始' },
                         { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦 -> 青沙浦 (需預約)' },
@@ -148,7 +171,7 @@
                     ]
                 },
                 {
-                    dateLabel: '2/25', weekDay: 'Wed',
+                    dateLabel: '2/25', weekDay: '(三)',
                     items: [
                         { time: '09:30', location: '南浦洞搭計程車', note: '前往甘川洞 (2台車)' },
                         { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
@@ -159,7 +182,7 @@
                     ]
                 },
                 {
-                    dateLabel: '2/26', weekDay: 'Thu',
+                    dateLabel: '2/26', weekDay: '(四)',
                     items: [
                         { time: '09:30', location: '龍頭山公園', note: '晨間散步/釜山塔/樂天超市' },
                         { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐：章魚+大蝦+牛腸' },
@@ -173,15 +196,17 @@
 
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
 
+            // 修復後的 MapUrl 邏輯
             const mapUrl = computed(() => {
                 const locs = currentDayItems.value.map(i => i.location);
                 if (locs.length === 0) return null;
-                return `https://www.google.com/maps/embed/v1/search?key=YOUR_FREE_API_KEY_OR_SIMULATED&q=$${encodeURIComponent(locs.join(' '))}&zoom=13`;
+                // 使用 Google 官方 Embed 格式，且不使用 API Key
+                return `https://maps.google.com/maps?q=${encodeURIComponent(locs.join(' '))}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
             });
 
             const openGoogleMaps = () => {
                 const locs = currentDayItems.value.map(i => encodeURIComponent(i.location));
-                window.open("https://www.google.com/maps/dir/My+Location/" + locs.join('/'), '_blank');
+                window.open("https://www.google.com/maps/dir/" + locs.join('/'), '_blank');
             };
 
             const saveItem = () => {
