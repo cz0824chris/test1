@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>2026 釜山孝親輕奢團</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F0F4F4; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .bg-teal-main { background-color: #43968F; }
+        .text-teal-main { color: #43968F; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen shadow-2xl overflow-x-hidden pb-24">
+
+<div id="app">
+    <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-bold italic">Busan 2026 🇰🇷</h1>
+                <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團</p>
+            </div>
+            <div class="flex gap-2">
+                <div @click="viewMode = 'calendar'" :class="['p-2 rounded-lg transition', viewMode === 'calendar' ? 'bg-white text-teal-600 shadow-sm' : 'bg-white/20 text-white']">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div @click="viewMode = 'money'" :class="['p-2 rounded-lg transition', viewMode === 'money' ? 'bg-white text-teal-600 shadow-sm' : 'bg-white/20 text-white']">
+                    <i class="fas fa-dollar-sign px-1"></i>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="viewMode === 'calendar'" class="flex gap-3 overflow-x-auto hide-scrollbar py-2">
+            <div v-for="(day, index) in days" :key="index" @click="currentDayIndex = index"
+                 :class="['flex-shrink-0 w-16 h-24 rounded-2xl flex flex-col items-center justify-center transition-all duration-300', 
+                          currentDayIndex === index ? 'bg-white text-teal-main shadow-xl scale-110' : 'bg-white/10 text-white opacity-60']">
+                <span class="text-[10px] uppercase font-bold">{{ day.dateLabel }}</span>
+                <span class="text-2xl font-black mt-1">D{{ index + 1 }}</span>
+                <span class="text-[9px] mt-1">{{ day.weekDay }}</span>
+            </div>
+        </div>
+    </div>
+
+    <template v-if="viewMode === 'calendar'">
+        <div class="px-5 mt-4 mb-4">
+            <div class="bg-white rounded-3xl p-5 shadow-md border border-gray-50 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">{{ days[currentDayIndex]?.dateLabel }} {{ days[currentDayIndex]?.weekDay }}</h2>
+                    <p class="text-gray-400 text-xs">釜山天氣預報: 0° - 10°</p>
+                </div>
+                <div class="text-right text-indigo-600 font-bold"><i class="fas fa-sun mr-1"></i>Sunny</div>
+            </div>
+        </div>
+
+        <div class="px-5 mb-6">
+            <div class="bg-white rounded-3xl overflow-hidden card-shadow border border-gray-50">
+                <div class="h-48 bg-gray-100">
+                    <iframe v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0" :src="mapUrl"></iframe>
+                </div>
+                <div class="p-3 px-5 flex justify-between items-center text-[11px] text-gray-500">
+                    <span><i class="fas fa-map-marker-alt text-green-500 mr-1"></i>今日地點已同步</span>
+                    <button @click="openGoogleMaps" class="bg-teal-50 text-teal-main font-bold px-3 py-1 rounded-lg">導航</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="px-5">
+            <div class="flex justify-between items-center mb-4 text-gray-800">
+                <h2 class="text-lg font-bold"><i class="far fa-clock mr-2"></i>行程詳情</h2>
+                <button @click="showModal = true" class="text-teal-main text-xs font-bold border border-teal-main px-3 py-1 rounded-full">+ 新增</button>
+            </div>
+            <div class="space-y-4">
+                <div v-for="(item, idx) in currentDayItems" :key="idx" class="bg-white p-4 rounded-2xl card-shadow border border-gray-50 flex items-start gap-4">
+                    <div class="text-center min-w-[50px]">
+                        <span class="block text-sm font-black text-teal-main">{{ item.time }}</span>
+                        <div class="w-[2px] h-6 bg-teal-50 mx-auto my-1"></div>
+                    </div>
+                    <div class="flex-1 font-bold text-gray-800">{{ item.location }} <p class="text-[10px] text-gray-400 font-normal">{{ item.note }}</p></div>
+                    <button @click="deleteItem(idx)" class="text-red-100"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        </main>
+    </template>
+
+    <template v-else>
+        <main class="px-5 py-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md mb-6 border border-teal-50">
+                <h3 class="font-bold text-gray-800 mb-4 text-lg"><i class="fas fa-plus-circle text-teal-main mr-2"></i>記錄新支出</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <input v-model="billItem.name" type="text" placeholder="付款人" class="p-3 bg-gray-50 rounded-xl text-sm border-none ring-1 ring-gray-100">
+                    <input v-model="billItem.amount" type="number" placeholder="金額 (KRW)" class="p-3 bg-gray-50 rounded-xl text-sm border-none ring-1 ring-gray-100">
+                </div>
+                <input v-model="billItem.title" type="text" placeholder="支出項目 (例如: 午餐、計程車)" class="w-full p-3 bg-gray-50 rounded-xl text-sm mb-4 border-none ring-1 ring-gray-100">
+                <button @click="addBill" class="w-full bg-teal-main text-white py-3 rounded-xl font-bold shadow-lg">加入明細</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-teal-50 p-4 rounded-2xl border border-teal-100 text-center">
+                    <p class="text-[10px] text-teal-600 font-bold uppercase">總支出 (KRW)</p>
+                    <p class="text-xl font-black text-teal-700">{{ formatNumber(totalExpenses) }}</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-center">
+                    <p class="text-[10px] text-indigo-600 font-bold uppercase">每人應付 (KRW)</p>
+                    <p class="text-xl font-black text-indigo-700">{{ formatNumber(averageExpense) }}</p>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mb-4 px-2">支出明細列表</h3>
+            <div class="space-y-3 mb-8">
+                <div v-for="(bill, idx) in bills" :key="idx" class="bg-white p-4 rounded-2xl card-shadow flex justify-between items-center border-l-4 border-teal-500">
+                    <div>
+                        <p class="font-bold text-gray-800">{{ bill.title }}</p>
+                        <p class="text-[10px] text-gray-400">付款人: {{ bill.name }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-teal-600">{{ formatNumber(bill.amount) }}</p>
+                        <button @click="deleteBill(idx)" class="text-[10px] text-red-300">刪除</button>
+                    </div>
+                </div>
+                <p v-if="bills.length === 0" class="text-center text-gray-400 py-10 text-sm">尚無支出紀錄</p>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mb-4 px-2">分帳結算 (5人團)</h3>
+            <div class="bg-gray-800 text-white rounded-3xl p-6 shadow-xl mb-10">
+                <div v-for="(res, name) in settlement" :key="name" class="flex justify-between items-center mb-3 last:mb-0 border-b border-white/10 pb-2 last:border-0">
+                    <span class="font-bold">{{ name }}</span>
+                    <span :class="res >= 0 ? 'text-green-400' : 'text-red-400'" class="font-mono">
+                        {{ res >= 0 ? '可拿回' : '應支付' }} {{ formatNumber(Math.abs(res)) }}
+                    </span>
+                </div>
+                <p class="text-[9px] text-gray-400 mt-4 text-center">* 系統自動計算付款差額，確保每人負擔相同 *</p>
+            </div>
+        </main>
+    </template>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 z-50 flex items-end">
+        <div class="bg-white w-full rounded-t-[40px] p-8">
+            <h3 class="text-xl font-bold mb-6">新增行程內容</h3>
+            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
+            <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
+            <div class="flex gap-4">
+                <button @click="saveItem" class="flex-1 bg-teal-main text-white py-4 rounded-2xl font-bold">儲存</button>
+                <button @click="showModal = false" class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const viewMode = ref('calendar'); // 'calendar' 或 'money'
+            const currentDayIndex = ref(0);
+            const showModal = ref(false);
+            const newItem = ref({ time: '09:00', location: '', note: '' });
+            
+            // 分帳相關
+            const billItem = ref({ name: '', title: '', amount: null });
+            const bills = ref([]);
+
+            const days = ref([
+                { dateLabel: '2/23', weekDay: '(一)', items: [{time: '17:00', location: '釜山金海機場', note: '抵達'}] },
+                { dateLabel: '2/24', weekDay: '(二)', items: [{time: '10:30', location: '海雲台天空膠囊列車', note: '需預約'}] },
+                { dateLabel: '2/25', weekDay: '(三)', items: [{time: '12:30', location: '扎嘎其市場', note: '帝王蟹大餐'}] },
+                { dateLabel: '2/26', weekDay: '(四)', items: [{time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐'}] }
+            ]);
+
+            const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
+            const mapUrl = computed(() => {
+                const locs = currentDayItems.value.map(i => i.location);
+                return locs.length ? `https://maps.google.com/maps?q=${encodeURIComponent(locs.join(' '))}&t=&z=13&ie=UTF8&iwloc=&output=embed` : null;
+            });
+
+            // 分帳邏輯
+            const totalExpenses = computed(() => bills.value.reduce((sum, b) => sum + Number(b.amount), 0));
+            const averageExpense = computed(() => totalExpenses.value / 5);
+
+            const settlement = computed(() => {
+                // 初始化 5 人名單 (若明細中有新名字也會加入)
+                let members = ['爸爸', '媽媽', '我', '姊姊', '弟弟']; // 預設名單
+                let balances = {};
+                
+                // 收集明細中出現的所有姓名
+                bills.value.forEach(b => { if(!members.includes(b.name)) members.push(b.name); });
+                members.forEach(m => balances[m] = 0);
+
+                // 計算每人已付金額
+                bills.value.forEach(b => { balances[b.name] += Number(b.amount); });
+
+                // 計算與人均的差額
+                let result = {};
+                let avg = totalExpenses.value / members.length;
+                members.forEach(m => { result[m] = balances[m] - avg; });
+                return result;
+            });
+
+            const addBill = () => {
+                if (billItem.value.name && billItem.value.amount) {
+                    bills.value.push({ ...billItem.value });
+                    billItem.value = { name: '', title: '', amount: null };
+                }
+            };
+            const deleteBill = (idx) => bills.value.splice(idx, 1);
+            const formatNumber = (num) => Math.round(num).toLocaleString();
+
+            const saveItem = () => {
+                if (newItem.value.location) {
+                    days.value[currentDayIndex.value].items.push({ ...newItem.value });
+                    days.value[currentDayIndex.value].items.sort((a,b)=>a.time.localeCompare(b.time));
+                    showModal.value = false;
+                    newItem.value = { time: '09:00', location: '', note: '' };
+                }
+            };
+            const deleteItem = (idx) => days.value[currentDayIndex.value].items.splice(idx, 1);
+            const openGoogleMaps = () => {
+                const locs = currentDayItems.value.map(i => encodeURIComponent(i.location));
+                window.open("https://www.google.com/maps/dir/" + locs.join('/'), '_blank');
+            };
+
+            const resetData = () => { if(confirm('重置行程？')) localStorage.clear(); location.reload(); };
+
+            // 儲存資料
+            watch([days, bills], () => {
+                localStorage.setItem('busan_days', JSON.stringify(days.value));
+                localStorage.setItem('busan_bills', JSON.stringify(bills.value));
+            }, { deep: true });
+
+            onMounted(() => {
+                const sDays = localStorage.getItem('busan_days');
+                const sBills = localStorage.getItem('busan_bills');
+                if (sDays) days.value = JSON.parse(sDays);
+                if (sBills) bills.value = JSON.parse(sBills);
+            });
+
+            return { 
+                viewMode, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, 
+                saveItem, deleteItem, openGoogleMaps, resetData,
+                billItem, bills, addBill, deleteBill, totalExpenses, averageExpense, settlement, formatNumber
+            };
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>
