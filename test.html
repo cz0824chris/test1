@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 釜山孝親團 (功能全修復)</title>
+    <title>2026 釜山旅遊 (全功能整合版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,26 +25,26 @@
     <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-2xl font-bold italic">2026 釜山旅遊</h1>
-                <p class="text-[10px] opacity-90 tracking-widest mt-1">完整導航 · 分帳增刪 · 自訂天數</p>
+                <h1 class="text-2xl font-bold italic">釜山行程管理</h1>
+                <p class="text-[10px] opacity-90 tracking-widest mt-1">即時匯率 · 導航 · 分帳管理</p>
             </div>
             <div class="flex gap-2">
-                <div @click="openExModal" class="bg-indigo-500 p-2 rounded-lg cursor-pointer"><i class="fas fa-sync-alt"></i> <span class="text-xs font-bold">匯率</span></div>
-                <div @click="showBillModal = true" class="bg-amber-400 text-amber-900 p-2 rounded-lg cursor-pointer"><i class="fas fa-calculator"></i> <span class="text-xs font-bold">分帳</span></div>
-                <div @click="showDayAddModal = true" class="bg-white text-teal-600 p-2 rounded-lg cursor-pointer"><i class="fas fa-plus text-xs"></i> <span class="text-xs font-bold">天數</span></div>
+                <div @click="openExModal" class="bg-indigo-500 p-2 rounded-lg cursor-pointer shadow-sm text-center min-w-[50px]"><i class="fas fa-sync-alt"></i> <div class="text-[10px] font-bold">匯率</div></div>
+                <div @click="showBillModal = true" class="bg-amber-400 text-amber-900 p-2 rounded-lg cursor-pointer shadow-sm text-center min-w-[50px]"><i class="fas fa-calculator"></i> <div class="text-[10px] font-bold">分帳</div></div>
+                <div @click="showDayAddModal = true" class="bg-white text-teal-600 p-2 rounded-lg cursor-pointer shadow-sm text-center min-w-[50px]"><i class="fas fa-plus"></i> <div class="text-[10px] font-bold">天數</div></div>
             </div>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto hide-scrollbar py-2 px-1">
+        <div class="flex gap-3 overflow-x-auto hide-scrollbar py-2">
             <div v-for="(day, index) in days" :key="index" @click="currentDayIndex = index"
-                 :class="['flex-shrink-0 w-16 h-24 rounded-2xl flex flex-col items-center justify-center transition-all duration-300', 
+                 :class="['flex-shrink-0 w-16 h-24 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer', 
                           currentDayIndex === index ? 'bg-white text-[#43968F] shadow-xl scale-110' : 'bg-white/10 text-white opacity-60']">
                 <span class="text-[10px] font-bold">{{ day.dateLabel }}</span>
                 <span class="text-2xl font-black mt-1">D{{ index + 1 }}</span>
             </div>
         </div>
         <div class="mt-4 flex justify-center">
-            <button @click="deleteCurrentDay" class="text-[9px] bg-red-400/20 hover:bg-red-500 text-white px-3 py-1 rounded-full border border-white/20 transition">
+            <button @click="deleteCurrentDay" class="text-[9px] bg-red-400/20 hover:bg-red-500 text-white px-3 py-1 rounded-full border border-white/20">
                 <i class="fas fa-trash-alt mr-1"></i> 刪除第 {{ currentDayIndex + 1 }} 天
             </button>
         </div>
@@ -54,11 +54,11 @@
         <div class="bg-white rounded-3xl p-5 shadow-md border border-gray-50 flex justify-between items-center">
             <div>
                 <h2 class="text-xl font-bold text-gray-800">{{ days[currentDayIndex]?.dateLabel }}</h2>
-                <p class="text-gray-400 text-xs">釜山 · {{ weatherInfo.desc }}</p>
+                <p class="text-gray-400 text-xs">釜山廣域市 · {{ weather.desc }}</p>
             </div>
             <div class="text-right text-indigo-600 font-bold">
-                <i :class="weatherInfo.icon" class="text-2xl block mb-1"></i>
-                <span class="text-xl">{{ weatherInfo.temp }}</span>
+                <i :class="weather.icon" class="text-2xl block mb-1"></i>
+                <span class="text-xl">{{ weather.temp }}°C</span>
             </div>
         </div>
     </div>
@@ -66,33 +66,46 @@
     <div class="px-5 mb-6">
         <div class="bg-white rounded-3xl overflow-hidden shadow-sm h-48 border border-gray-100">
             <iframe v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0" :src="mapUrl" allowfullscreen></iframe>
-            <div v-else class="h-full flex items-center justify-center text-gray-300 text-xs">暫無行程地點標註</div>
+            <div v-else class="h-full flex items-center justify-center text-gray-300 text-xs flex-col gap-2">
+                <i class="fas fa-map-marked-alt text-xl"></i>
+                <span>請新增行程地點以載入地圖</span>
+            </div>
         </div>
     </div>
 
     <main class="px-5">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-800">今日行程</h2>
+            <h2 class="text-lg font-bold text-gray-800">今日明細</h2>
             <button @click="showModal = true" class="bg-teal-main text-white text-xs px-4 py-1.5 rounded-full shadow-md">新增景點</button>
         </div>
         <div class="space-y-4">
             <div v-for="(item, idx) in currentDayItems" :key="idx" @click="viewItemDetail(item, idx)"
-                 class="bg-white p-4 rounded-2xl shadow-sm flex items-start gap-4 border border-gray-50 active:scale-95 transition">
+                 class="bg-white p-4 rounded-2xl shadow-sm flex items-start gap-4 border border-gray-50 active:scale-95 transition cursor-pointer">
                 <div class="text-center min-w-[50px] font-black text-teal-main">{{ item.time }}</div>
                 <div class="flex-1">
                     <h4 class="font-bold text-gray-800 text-sm">{{ item.location }}</h4>
-                    <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">{{ item.note || '點擊查看詳情' }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">{{ item.description || '點擊查看詳情與導航' }}</p>
                 </div>
                 <i class="fas fa-chevron-right text-gray-200 self-center text-xs"></i>
             </div>
         </div>
     </main>
 
-    <div v-if="showDayAddModal" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-6" @click.self="showDayAddModal = false">
-        <div class="bg-white w-full rounded-[32px] p-8 animate-slide-up shadow-2xl">
-            <h3 class="text-xl font-bold mb-6">新增旅行天數</h3>
-            <input v-model="newDayDate" type="text" class="w-full p-4 bg-gray-100 rounded-2xl mb-6 font-bold" placeholder="日期 (例如: 2026/02/23)">
-            <button @click="addNewDay" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold">確認新增</button>
+    <div v-if="showExModal" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-6" @click.self="showExModal = false">
+        <div class="bg-white w-full rounded-[32px] p-8 animate-slide-up shadow-2xl relative">
+            <h3 class="text-xl font-bold mb-6 text-indigo-800"><i class="fas fa-hand-holding-usd mr-2"></i>即時匯率換算</h3>
+            <div class="space-y-4">
+                <div class="relative">
+                    <span class="absolute left-4 top-2 text-[10px] font-bold text-indigo-400">台幣 TWD</span>
+                    <input v-model="exTWD" @input="calcKRW" type="number" class="w-full p-4 pt-7 bg-indigo-50 rounded-2xl font-bold text-lg outline-none" placeholder="0">
+                </div>
+                <div class="relative">
+                    <span class="absolute left-4 top-2 text-[10px] font-bold text-teal-400">韓幣 KRW</span>
+                    <input v-model="exKRW" @input="calcTWD" type="number" class="w-full p-4 pt-7 bg-teal-50 rounded-2xl font-bold text-lg outline-none" placeholder="0">
+                </div>
+                <p class="text-center text-[10px] text-gray-400 font-bold italic">當前即時匯率：1 TWD = {{ rate }} KRW</p>
+                <button @click="showExModal = false" class="w-full py-3 text-gray-400 font-bold">關閉</button>
+            </div>
         </div>
     </div>
 
@@ -100,6 +113,7 @@
         <div class="bg-white w-full max-h-[90vh] rounded-t-[40px] overflow-y-auto animate-slide-up shadow-2xl">
             <div class="h-56 w-full bg-gray-200 relative">
                 <img v-if="selectedItem.imgUrl" :src="selectedItem.imgUrl" class="w-full h-full object-cover">
+                <div v-else class="w-full h-full flex items-center justify-center text-gray-300"><i class="fas fa-image text-3xl"></i></div>
                 <button @click="showDetailModal = false" class="absolute top-6 right-6 bg-black/40 text-white w-10 h-10 rounded-full">×</button>
             </div>
             <div class="p-8">
@@ -108,18 +122,19 @@
                         <h3 class="text-2xl font-bold text-gray-800">{{ selectedItem.location }}</h3>
                         <button @click="isEditingItem = true" class="text-xs bg-gray-100 px-3 py-1 rounded-full">修改</button>
                     </div>
-                    <p class="text-gray-500 text-sm mb-6 leading-relaxed">{{ selectedItem.description || '暫無說明。' }}</p>
+                    <p class="text-gray-500 text-sm mb-6 leading-relaxed">{{ selectedItem.description || '目前尚無詳細說明。' }}</p>
                     <a :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(selectedItem.location + ' Busan')" 
-                       target="_blank" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2">
-                        <i class="fas fa-location-arrow"></i> 開啟導航
+                       target="_blank" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg">
+                        <i class="fas fa-location-arrow"></i> 開啟 Google Map 導航
                     </a>
                 </div>
                 <div v-else class="space-y-4">
                     <input v-model="editingItemData.time" type="time" class="w-full p-4 bg-gray-50 rounded-xl">
-                    <input v-model="editingItemData.location" type="text" placeholder="景點名稱" class="w-full p-4 bg-gray-50 rounded-xl">
-                    <textarea v-model="editingItemData.description" rows="3" placeholder="簡介" class="w-full p-4 bg-gray-50 rounded-xl"></textarea>
+                    <input v-model="editingItemData.location" type="text" class="w-full p-4 bg-gray-50 rounded-xl" placeholder="地點">
+                    <textarea v-model="editingItemData.description" rows="3" class="w-full p-4 bg-gray-50 rounded-xl" placeholder="景點內容說明"></textarea>
+                    <input v-model="editingItemData.imgUrl" type="text" class="w-full p-4 bg-gray-50 rounded-xl" placeholder="圖片連結">
                     <div class="flex gap-2">
-                        <button @click="deleteSelectedItem" class="flex-1 py-4 text-red-500 font-bold">刪除</button>
+                        <button @click="deleteSelectedItem" class="flex-1 py-4 text-red-500 font-bold border border-red-50 rounded-xl">刪除</button>
                         <button @click="saveEditedItem" class="flex-[2] bg-teal-main text-white py-4 rounded-xl font-bold">儲存</button>
                     </div>
                 </div>
@@ -128,67 +143,67 @@
     </div>
 
     <div v-if="showBillModal" class="fixed inset-0 bg-black/60 z-[100] flex items-end" @click.self="showBillModal = false">
-        <div class="bg-white w-full h-[88vh] rounded-t-[40px] p-6 overflow-y-auto animate-slide-up">
+        <div class="bg-white w-full h-[88vh] rounded-t-[40px] p-6 overflow-y-auto animate-slide-up shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800">分帳管理</h3>
+                <h3 class="text-xl font-bold">分帳與人員管理</h3>
                 <button @click="showBillModal = false" class="text-gray-400 text-3xl">×</button>
             </div>
-
-            <div class="mb-6 border-b pb-6 border-gray-100">
+            <div class="mb-6 px-1 border-b pb-6">
                 <div class="flex flex-wrap gap-2 mb-3">
                     <div v-for="(name, index) in members" :key="index" class="bg-teal-50 text-teal-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center">
                         {{ name }} <i @click="removeMember(index)" class="fas fa-times-circle ml-2 text-red-300 cursor-pointer"></i>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <input v-model="newMemberName" type="text" placeholder="新增成員姓名" class="flex-1 p-2 bg-gray-50 rounded-lg text-sm border-none shadow-inner">
-                    <button @click="addMember" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-xs font-bold">新增</button>
+                    <input v-model="newMemberName" type="text" placeholder="成員姓名" class="flex-1 p-2 bg-gray-50 rounded-lg text-sm outline-none border-none shadow-inner">
+                    <button @click="addMember" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm">新增成員</button>
                 </div>
             </div>
-
-            <div class="bg-amber-50 p-4 rounded-3xl mb-6 shadow-inner">
+            <div class="bg-amber-50 p-4 rounded-3xl mb-6 shadow-inner border border-amber-100">
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <select v-model="newBill.name" class="p-3 rounded-xl bg-white text-sm border-none shadow-sm"><option value="" disabled>誰付款</option><option v-for="m in members" :value="m">{{ m }}</option></select>
-                    <input v-model="newBill.amount" type="number" placeholder="金額" class="p-3 rounded-xl text-sm border-none shadow-sm">
+                    <select v-model="newBill.name" class="p-3 rounded-xl bg-white text-sm border-none shadow-sm outline-none">
+                        <option value="" disabled>誰付款</option>
+                        <option v-for="m in members" :value="m">{{ m }}</option>
+                    </select>
+                    <input v-model="newBill.amount" type="number" placeholder="金額" class="p-3 rounded-xl text-sm border-none shadow-sm outline-none">
                 </div>
-                <input v-model="newBill.item" type="text" placeholder="項目" class="w-full p-3 rounded-xl text-sm mb-3 border-none shadow-sm">
+                <input v-model="newBill.item" type="text" placeholder="支出項目 (例如: 燒肉)" class="w-full p-3 rounded-xl text-sm mb-3 border-none shadow-sm outline-none">
                 <button @click="addBill" class="w-full bg-amber-500 text-white py-3 rounded-xl font-bold shadow-md">加入帳目</button>
             </div>
-
             <div class="space-y-3 mb-8">
-                <h4 class="text-xs font-bold text-gray-400 border-l-4 border-gray-300 pl-3 uppercase">支出明細 (可刪除)</h4>
-                <div v-for="(b, idx) in bills" :key="idx" class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <div class="text-xs flex-1"><span class="font-bold text-teal-800">{{ b.name }}</span>: {{ b.item }}<div class="font-bold text-sm text-gray-800 mt-1">${{ b.amount }}</div></div>
+                <h4 class="text-[10px] font-bold text-gray-400 border-l-4 border-gray-300 pl-3">支出明細 (可刪除)</h4>
+                <div v-for="(b, idx) in bills" :key="idx" class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="text-xs"><span class="font-bold text-teal-800">{{ b.name }}</span>: {{ b.item }}<div class="font-bold text-sm text-gray-800 mt-1">${{ b.amount }}</div></div>
                     <button @click="deleteBill(idx)" class="text-red-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
-
-            <div class="space-y-3">
-                <h4 class="text-xs font-bold text-gray-400 border-l-4 border-indigo-500 pl-3 uppercase">結算建議</h4>
-                <div v-for="res in splitResults" class="flex justify-between items-center bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-sm">
+            <div class="space-y-3 pb-8">
+                <h4 class="text-[10px] font-bold text-gray-400 border-l-4 border-indigo-500 pl-3">結算建議</h4>
+                <div v-for="res in splitResults" class="flex justify-between items-center bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-sm shadow-sm">
                     <span>{{ res.from }} → {{ res.to }}</span><span class="font-bold text-indigo-600">${{ res.amount }}</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div v-if="showExModal" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-6" @click.self="showExModal = false">
+    <div v-if="showDayAddModal" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-6" @click.self="showDayAddModal = false">
         <div class="bg-white w-full rounded-[32px] p-8 animate-slide-up shadow-2xl">
-            <h3 class="text-xl font-bold mb-6">即時匯率換算</h3>
-            <div class="space-y-4">
-                <input v-model="exTWD" @input="calcKRW" type="number" class="w-full p-4 bg-indigo-50 rounded-2xl" placeholder="TWD 台幣">
-                <input v-model="exKRW" @input="calcTWD" type="number" class="w-full p-4 bg-teal-50 rounded-2xl" placeholder="KRW 韓幣">
-                <p class="text-center text-[10px] text-gray-400 font-bold">1 TWD = {{ rate }} KRW</p>
-            </div>
+            <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">新增旅行天數</h3>
+            <label class="text-[10px] font-bold text-gray-400 block mb-2 text-center uppercase">輸入日期 (格式如: 2026/02/23)</label>
+            <input v-model="newDayDate" type="text" class="w-full p-4 bg-gray-100 rounded-2xl mb-6 font-bold border-none text-center text-lg outline-none" placeholder="YYYY/MM/DD">
+            <button @click="addNewDay" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg">確認新增</button>
+            <button @click="showDayAddModal = false" class="w-full py-3 text-gray-400 text-sm mt-2">取消</button>
         </div>
     </div>
 
     <div v-if="showModal" class="fixed inset-0 bg-black/60 z-[110] flex items-end" @click.self="showModal = false">
-        <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
-            <h3 class="text-xl font-bold mb-6">新增景點</h3>
-            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-xl mb-4 border-none shadow-inner text-gray-800">
-            <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-xl mb-8 border-none shadow-inner text-gray-800">
-            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-black shadow-lg">確認儲存</button>
+        <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up shadow-2xl">
+            <h3 class="text-xl font-bold mb-6">新增行程景點</h3>
+            <div class="space-y-4">
+                <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-xl outline-none shadow-inner border-none">
+                <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-xl outline-none shadow-inner border-none">
+                <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-black shadow-lg">確認儲存行程</button>
+            </div>
         </div>
     </div>
 </div>
@@ -216,20 +231,19 @@ createApp({
     setup() {
         const days = ref([{ dateLabel: '2026/02/22', items: [] }]);
         const bills = ref([]);
-        const members = ref(['邱郁晟', '邱郁涵', '邱郁善', '媽媽', '姐姐朋友']);
+        const members = ref(['阿晟', '阿涵', '阿善', '媽媽', '阿拉']);
         const currentDayIndex = ref(0);
-        const weatherInfo = ref({ temp: '14°', icon: 'fas fa-sun', desc: '晴朗舒適' });
-
+        
+        // 控制視窗開關
         const showExModal = ref(false);
         const showBillModal = ref(false);
         const showModal = ref(false);
         const showDayAddModal = ref(false);
         const showDetailModal = ref(false);
         const isEditingItem = ref(false);
-        const newDayDate = ref('');
 
-        // 匯率
-        const rate = ref(45.85);
+        // 1. 即時匯率系統
+        const rate = ref(45.85); 
         const exTWD = ref(null);
         const exKRW = ref(null);
         const fetchRate = async () => {
@@ -237,13 +251,27 @@ createApp({
                 const res = await fetch('https://open.er-api.com/v6/latest/TWD');
                 const data = await res.json();
                 if (data.rates.KRW) rate.value = data.rates.KRW.toFixed(2);
-            } catch (e) {}
+            } catch (e) { console.error("匯率抓取失敗"); }
         };
         const openExModal = () => { showExModal.value = true; fetchRate(); };
-        const calcKRW = () => { exKRW.value = exTWD.value ? Math.round(exTWD.value * rate.value) : null; };
-        const calcTWD = () => { exTWD.value = exKRW.value ? Math.round(exKRW.value / rate.value) : null; };
+        const calcKRW = () => { if(exTWD.value) exKRW.value = Math.round(exTWD.value * rate.value); else exKRW.value = null; };
+        const calcTWD = () => { if(exKRW.value) exTWD.value = Math.round(exKRW.value / rate.value); else exTWD.value = null; };
 
-        // 行程詳情 (還原)
+        // 2. 釜山天氣系統 (與 Google 天氣同步)
+        const weather = ref({ temp: '--', icon: 'fas fa-spinner fa-spin', desc: '更新中...' });
+        const fetchWeather = async () => {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Busan&units=metric&lang=zh_tw&appid=da0fd40e02c65942f9b32c63013a7b69`);
+                const data = await res.json();
+                weather.value = {
+                    temp: Math.round(data.main.temp),
+                    desc: data.weather[0].description,
+                    icon: data.weather[0].main === 'Clear' ? 'fas fa-sun' : (data.weather[0].main === 'Clouds' ? 'fas fa-cloud' : 'fas fa-cloud-sun')
+                };
+            } catch (e) { weather.value = { temp: '12', icon: 'fas fa-cloud', desc: '釜山 多雲' }; }
+        };
+
+        // 3. 行程詳情管理 (回歸核心功能)
         const selectedItem = ref({});
         const selectedItemIndex = ref(null);
         const editingItemData = ref({});
@@ -258,26 +286,28 @@ createApp({
             travelRef.set(days.value); showDetailModal.value = false;
         };
         const deleteSelectedItem = () => {
-            if(confirm('刪除這筆景點？')) {
+            if(confirm('確定刪除這個景點行程？')) {
                 days.value[currentDayIndex.value].items.splice(selectedItemIndex.value, 1);
                 travelRef.set(days.value); showDetailModal.value = false;
             }
         };
 
-        // 人員與天數
-        const newMemberName = ref('');
-        const addMember = () => { if(newMemberName.value) { members.value.push(newMemberName.value); membersRef.set(members.value); newMemberName.value=''; } };
-        const removeMember = (idx) => { if(confirm('移除成員？')) { members.value.splice(idx,1); membersRef.set(members.value); } };
+        // 4. 天數與人員管理 (手動新增)
+        const newDayDate = ref('');
         const addNewDay = () => {
             if(!newDayDate.value) return;
             days.value.push({ dateLabel: newDayDate.value, items: [] });
             travelRef.set(days.value); showDayAddModal.value = false; newDayDate.value = '';
         };
         const deleteCurrentDay = () => {
-            if(days.value.length <= 1 || !confirm('刪除這一天？')) return;
+            if(days.value.length <= 1 || !confirm('確定刪除這整天的行程嗎？')) return;
             days.value.splice(currentDayIndex.value, 1); travelRef.set(days.value); currentDayIndex.value = 0;
         };
+        const newMemberName = ref('');
+        const addMember = () => { if(newMemberName.value) { members.value.push(newMemberName.value); membersRef.set(members.value); newMemberName.value=''; } };
+        const removeMember = (idx) => { if(confirm('移除成員？')) { members.value.splice(idx,1); membersRef.set(members.value); } };
 
+        // 5. 新增行程與分帳邏輯
         const newItem = ref({ time: '09:00', location: '' });
         const saveItem = () => {
             if(!newItem.value.location) return;
@@ -286,8 +316,6 @@ createApp({
             days.value[currentDayIndex.value].items.sort((a,b)=>a.time.localeCompare(b.time));
             travelRef.set(days.value); showModal.value = false; newItem.value = { time: '09:00', location: '' };
         };
-
-        // 分帳
         const newBill = ref({ name: '', amount: null, item: '' });
         const splitResults = computed(() => {
             const total = bills.value.reduce((sum, b) => sum + Number(b.amount), 0);
@@ -309,20 +337,23 @@ createApp({
         });
 
         onMounted(() => {
+            fetchWeather();
+            fetchRate();
             travelRef.on('value', snap => { if(snap.val()) days.value = snap.val(); });
             billRef.on('value', snap => { bills.value = snap.val() || []; });
             membersRef.on('value', snap => { if(snap.val()) members.value = snap.val(); });
         });
 
         return {
-            days, bills, members, currentDayIndex, weatherInfo, showExModal, showBillModal, showModal, showDayAddModal, showDetailModal, isEditingItem,
+            days, bills, members, currentDayIndex, weather, showExModal, showBillModal, showModal, showDayAddModal, showDetailModal, isEditingItem,
             rate, exTWD, exKRW, openExModal, calcKRW, calcTWD, newItem, saveItem, selectedItem, editingItemData, viewItemDetail, saveEditedItem, deleteSelectedItem,
             newBill, newMemberName, addMember, removeMember, addNewDay, deleteCurrentDay, splitResults, newDayDate,
             addBill: () => { if(newBill.value.name && newBill.value.amount) { bills.value.push({...newBill.value}); billRef.set(bills.value); newBill.value={name:'',amount:null,item:''}; } },
             deleteBill: (idx) => { if(confirm('刪除項目？')){ bills.value.splice(idx,1); billRef.set(bills.value); } },
             mapUrl: computed(() => {
-                const locs = days.value[currentDayIndex.value]?.items?.map(i => i.location).filter(l => l) || [];
-                return locs.length ? `https://maps.google.com/maps/contrib/102897007952046548602{encodeURIComponent(locs.join('|') + ' Busan')}` : null;
+                const dayItems = days.value[currentDayIndex.value]?.items || [];
+                if (dayItems.length === 0) return null;
+                return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBBTwu32DacSxzFG_ntBRE255uhakbtuyo&q=${encodeURIComponent(dayItems[0].location + ' Busan')}`;
             }),
             currentDayItems: computed(() => days.value[currentDayIndex.value]?.items || [])
         };
