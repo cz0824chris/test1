@@ -40,7 +40,7 @@
                         <img :src="weather.iconUrl" class="w-8 h-8" v-if="weather.iconUrl">
                         <span class="text-lg font-bold">{{ weather.temp }}</span>
                     </div>
-                    <p class="text-[9px] opacity-90 font-medium">釜山實時：{{ weather.desc }}</p>
+                    <p class="text-[9px] opacity-90 font-medium">釜山即時：{{ weather.desc }}</p>
                 </div>
             </div>
         </div>
@@ -60,18 +60,20 @@
         <div class="bg-white rounded-3xl overflow-hidden card-shadow border border-gray-50">
             <div class="h-48 w-full bg-gray-200 relative">
                 <iframe 
-                    v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0"
-                    :src="mapUrl" allowfullscreen>
+                    v-if="currentDayItems.length > 0"
+                    width="100%" height="100%" frameborder="0" style="border:0"
+                    :src="mapEmbedUrl" 
+                    allowfullscreen>
                 </iframe>
                 <div v-else class="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                     <i class="fas fa-map-marked-alt text-2xl"></i>
-                    <p class="text-xs">請新增地點以顯示地圖</p>
+                    <p class="text-xs">請新增行程地點以顯示地圖</p>
                 </div>
             </div>
             <div class="p-3 px-5 flex justify-between items-center bg-white border-t border-gray-50">
-                <span class="text-[10px] text-gray-400 font-medium tracking-tight">自動釘選當日行程 + 我的位置</span>
+                <span class="text-[10px] text-gray-400 font-medium">自動釘選當日行程</span>
                 <button @click="openGoogleMaps" class="text-xs font-bold text-[#43968F] bg-teal-50 px-3 py-1.5 rounded-lg active:scale-95 transition">
-                    <i class="fas fa-location-arrow mr-1"></i>Google 導航
+                    <i class="fas fa-directions mr-1"></i>Google 導航
                 </button>
             </div>
         </div>
@@ -80,29 +82,28 @@
     <main class="px-5">
         <div class="flex justify-between items-center mb-4 px-1">
             <h2 class="text-lg font-bold text-gray-800">Day {{ currentDayIndex + 1 }} 行程表</h2>
-            <div class="flex gap-2">
-                <button v-if="days.length > 1" @click="removeCurrentDay" class="text-red-400 text-[10px] font-bold mr-2">刪除此天</button>
+            <div class="flex gap-2 items-center">
+                <button v-if="days.length > 1" @click="removeCurrentDay" class="text-red-400 text-[10px] font-bold">刪除此天</button>
                 <button @click="showModal = true" class="text-[#43968F] text-xs font-bold bg-white px-3 py-1.5 rounded-full shadow-sm">+ 新增行程</button>
             </div>
         </div>
 
         <div v-if="currentDayItems.length === 0" class="text-center py-12 bg-white rounded-3xl border-2 border-dashed border-gray-200 text-gray-300">
             <i class="fas fa-calendar-plus text-3xl mb-2"></i>
-            <p class="text-sm">這天還沒有規劃行程喔</p>
+            <p class="text-sm">尚未加入行程</p>
         </div>
 
         <div class="space-y-4">
             <div v-for="(item, idx) in currentDayItems" :key="idx" 
-                 class="bg-white p-4 rounded-2xl card-shadow border border-gray-100 flex items-start gap-4 group transition active:bg-gray-50">
+                 class="bg-white p-4 rounded-2xl card-shadow border border-gray-100 flex items-start gap-4">
                 <div class="text-center min-w-[50px]">
                     <span class="block text-sm font-black text-[#43968F]">{{ item.time }}</span>
-                    <div class="w-[2px] h-6 bg-teal-50 mx-auto my-1"></div>
                 </div>
                 <div class="flex-1">
                     <h4 class="font-bold text-gray-800 text-base">{{ item.location }}</h4>
                     <p v-if="item.note" class="text-[11px] text-gray-400 mt-1">{{ item.note }}</p>
                 </div>
-                <button @click="deleteItem(idx)" class="text-gray-200 group-hover:text-red-300 transition p-2">
+                <button @click="deleteItem(idx)" class="text-gray-200 hover:text-red-300 p-2">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
             </div>
@@ -111,30 +112,19 @@
 
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-lg border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-lg rounded-t-[35px] z-40">
         <div class="flex flex-col items-center text-[#43968F]"><i class="fas fa-th-list text-xl"></i><span class="text-[9px] mt-1 font-bold">行程</span></div>
-        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-route text-xl"></i><span class="text-[9px] mt-1">導航</span></div>
-        <div @click="resetData" class="flex flex-col items-center text-gray-300"><i class="fas fa-sync-alt text-xl"></i><span class="text-[9px] mt-1">重置</span></div>
+        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-route text-xl"></i><span class="text-[9px] mt-1 font-bold">導航</span></div>
+        <div @click="resetData" class="flex flex-col items-center text-gray-300"><i class="fas fa-sync-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">重置</span></div>
     </nav>
 
     <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end" @click.self="showModal = false">
-        <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up shadow-2xl">
-            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <i class="fas fa-map-pin text-teal-main"></i>新增 Day {{currentDayIndex + 1}} 行程
-            </h3>
+        <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">新增 Day {{currentDayIndex + 1}} 行程</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 ml-1">時間</label>
-                    <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100 focus:ring-teal-500">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 ml-1">地點名稱</label>
-                    <input v-model="newItem.location" type="text" placeholder="例：札嘎其市場" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100 focus:ring-teal-500">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 ml-1">備註</label>
-                    <input v-model="newItem.note" type="text" placeholder="例：預約大車、吃海鮮" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100 focus:ring-teal-500">
-                </div>
+                <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100">
+                <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100">
+                <input v-model="newItem.note" type="text" placeholder="備註 (選填)" class="w-full p-4 bg-gray-50 rounded-2xl border-none ring-1 ring-gray-100">
             </div>
-            <button @click="saveItem" class="w-full mt-8 bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-200 transition active:scale-95">確認儲存</button>
+            <button @click="saveItem" class="w-full mt-8 bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg">確認儲存</button>
         </div>
     </div>
 </div>
@@ -147,80 +137,69 @@
             const currentDayIndex = ref(0);
             const showModal = ref(false);
             const newItem = ref({ time: '09:00', location: '', note: '' });
-            
             const weather = reactive({ temp: '--', desc: '載入中', iconUrl: '', loading: true });
 
+            // 天氣抓取修正
             const fetchWeather = async () => {
                 const apiKey = "b78b6754b73b53c52814838641a02798";
                 try {
                     const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Busan&units=metric&appid=${apiKey}&lang=zh_tw`);
                     const data = await res.json();
-                    weather.temp = Math.round(data.main.temp) + '°C';
-                    weather.desc = data.weather[0].description;
-                    weather.iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-                    weather.loading = false;
-                } catch (e) { weather.loading = false; }
+                    if(data.main) {
+                        weather.temp = Math.round(data.main.temp) + '°C';
+                        weather.desc = data.weather[0].description;
+                        weather.iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                    }
+                } catch (e) { console.error(e); } finally { weather.loading = false; }
             };
 
             const defaultDays = [
                 { dateLabel: '2/23', items: [
                     { time: '17:00', location: '釜山金海機場', note: '抵達' },
-                    { time: '18:00', location: '機場大車接送', note: '直達飯店' },
                     { time: '19:00', location: 'New CZ Nampo Hotel', note: 'Check-in' },
-                    { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐：補氣暖身' },
-                    { time: '20:45', location: 'BIFF 廣場', note: '堅果黑糖餅、魚板、年糕' },
-                    { time: '21:15', location: 'Olive Young 光復路店', note: '藥妝採買散步' }
+                    { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐' }
                 ]},
                 { dateLabel: '2/24', items: [
-                    { time: '09:30', location: '飯店門口', note: '包車一日遊開始' },
-                    { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦 -> 青沙浦' },
-                    { time: '11:30', location: '青沙浦烤貝', note: '午餐：海鮮大餐' },
-                    { time: '13:30', location: '海東龍宮寺', note: '海邊最美寺廟' },
-                    { time: '15:00', location: '樂天 Outlet', note: '逛街下午茶' },
-                    { time: '18:00', location: '伍班長烤肉', note: '晚餐：海雲台美食' }
+                    { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦' },
+                    { time: '13:30', location: '海東龍宮寺', note: '景點' }
                 ]},
                 { dateLabel: '2/25', items: [
-                    { time: '09:30', location: '南浦洞', note: '搭計程車前往甘川洞' },
-                    { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
-                    { time: '12:30', location: '扎嘎其市場', note: '午餐：帝王蟹/烤魚' },
-                    { time: '14:30', location: '松島海水皮亞', note: '汗蒸幕看海休息' },
-                    { time: '18:30', location: '李才牟比薩', note: '晚餐：超強起司披薩' }
+                    { time: '10:00', location: '甘川洞文化村', note: '拍照' },
+                    { time: '15:00', location: '松島海水皮亞', note: '汗蒸幕' }
                 ]},
                 { dateLabel: '2/26', items: [
-                    { time: '09:30', location: '龍頭山公園', note: '晨間散步/釜山塔/樂天超市' },
-                    { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐：章魚+大蝦+牛腸' },
-                    { time: '12:00', location: '預約送機', note: '飯店門口搭大車' },
-                    { time: '15:00', location: '釜山金海機場', note: '飛機起飛' }
+                    { time: '11:00', location: '螞蟻家章魚火鍋', note: '美食' },
+                    { time: '15:00', location: '釜山金海機場', note: '返程' }
                 ]}
             ];
 
             const days = ref([]);
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
 
-            // 功能：新增天數
-            const addNewDay = () => {
-                days.value.push({ dateLabel: '新增', items: [] });
-                currentDayIndex.value = days.value.length - 1;
-                alert("已新增 Day " + days.value.length);
-            };
-
-            // 功能：刪除當天
-            const removeCurrentDay = () => {
-                if(confirm(`確定要刪除第 ${currentDayIndex.value + 1} 天的所有行程嗎？`)) {
-                    days.value.splice(currentDayIndex.value, 1);
-                    currentDayIndex.value = 0;
-                }
-            };
-
-            const mapUrl = computed(() => {
-                const locs = currentDayItems.value.map(i => i.location);
-                if (locs.length === 0) return null;
-                return `https://www.google.com/maps8{encodeURIComponent(locs.join(' '))}`;
+            // 地圖 404 修正：改用標準 Google Maps Embed API 格式
+            const mapEmbedUrl = computed(() => {
+                const locations = currentDayItems.value.map(i => i.location);
+                if (locations.length === 0) return "";
+                const query = encodeURIComponent(locations.join(' '));
+                return `https://maps.google.com/maps?q=${query}&z=13&output=embed`;
             });
 
             const openGoogleMaps = () => {
-                const locs = currentDayItems.value.map(i => encodeURIComponent(i.location));
-                window.open("https://www.google.com/maps/dir/My+Location/" + locs.join('/'), '_blank');
+                const locations = currentDayItems.value.map(i => encodeURIComponent(i.location));
+                if(locations.length === 0) return window.open("https://www.google.com/maps/search/Busan");
+                window.open("https://www.google.com/maps/dir/My+Location/" + locations.join('/'));
+            };
+
+            const addNewDay = () => {
+                days.value.push({ dateLabel: '新增', items: [] });
+                currentDayIndex.value = days.value.length - 1;
+            };
+
+            const removeCurrentDay = () => {
+                if(confirm('確定刪除？')) {
+                    days.value.splice(currentDayIndex.value, 1);
+                    currentDayIndex.value = 0;
+                }
             };
 
             const saveItem = () => {
@@ -229,34 +208,34 @@
                     days.value[currentDayIndex.value].items.sort((a, b) => a.time.localeCompare(b.time));
                     newItem.value = { time: '09:00', location: '', note: '' };
                     showModal.value = false;
-                } else { alert("請輸入地點名稱"); }
+                }
             };
 
             const deleteItem = (idx) => { days.value[currentDayIndex.value].items.splice(idx, 1); };
 
             const resetData = () => {
-                if(confirm('要重新載入預設 4 天行程嗎？(目前新增內容將消失)')) {
+                if(confirm('重置將遺失新增行程，確定？')) {
                     days.value = JSON.parse(JSON.stringify(defaultDays));
                 }
             };
 
-            watch(days, (newVal) => { localStorage.setItem('busan_app_v7', JSON.stringify(newVal)); }, { deep: true });
+            watch(days, (newVal) => { localStorage.setItem('busan_fix_v8', JSON.stringify(newVal)); }, { deep: true });
 
             onMounted(() => {
                 fetchWeather();
-                const saved = localStorage.getItem('busan_app_v7');
+                const saved = localStorage.getItem('busan_fix_v8');
                 if (saved) { days.value = JSON.parse(saved); } 
                 else { days.value = JSON.parse(JSON.stringify(defaultDays)); }
             });
 
-            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, saveItem, deleteItem, openGoogleMaps, resetData, weather, addNewDay, removeCurrentDay };
+            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapEmbedUrl, saveItem, deleteItem, openGoogleMaps, resetData, weather, addNewDay, removeCurrentDay };
         }
     }).mount('#app')
 </script>
 
 <style>
     @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .animate-slide-up { animation: slide-up 0.4s ease-out; }
 </style>
 </body>
 </html>
