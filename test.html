@@ -3,136 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>釜山旅遊行程 - 地圖升級版</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>我的韓國旅遊助手</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F8FAFC; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F8FAFC; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .bg-teal-main { background-color: #43968F; }
-        .text-teal-main { color: #43968F; }
-        .date-card-active { background-color: white; color: #43968F; }
-        .date-card-inactive { background-color: rgba(255,255,255,0.2); color: white; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen shadow-2xl overflow-x-hidden">
 
-<div id="app" class="pb-24">
-    <div class="bg-teal-main text-white pt-6 pb-4 px-5 rounded-b-[40px] shadow-lg">
+<div id="app">
+    <div class="bg-teal-main text-white pt-8 pb-4 px-5 rounded-b-[40px] shadow-lg">
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-bars text-xl opacity-80"></i>
-                <div>
-                    <h1 class="text-2xl font-bold flex items-center gap-2">釜山 <i class="fas fa-plane-departure text-sm opacity-60"></i></h1>
-                    <p class="text-[10px] opacity-70">已自動同步地圖釘選</p>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <div class="bg-white/20 p-2 rounded-lg"><i class="fas fa-language"></i></div>
-                <div class="bg-white p-2 rounded-lg text-teal-main shadow-sm"><i class="fas fa-map-marked-alt"></i></div>
-            </div>
+            <h1 class="text-2xl font-bold">釜山行 🇰🇷</h1>
+            <button @click="addNewDay" class="bg-white/20 px-3 py-1 rounded-full text-xs">
+                <i class="fas fa-calendar-plus mr-1"></i>新增一天
+            </button>
         </div>
 
         <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-            <div v-for="day in days" :key="day.id" @click="currentDay = day.id"
-                 :class="['flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all duration-300', 
-                          currentDay === day.id ? 'date-card-active scale-105 shadow-md' : 'date-card-inactive opacity-70']">
-                <span class="text-[10px] font-medium">{{ day.date }}</span>
-                <span class="text-xl font-bold leading-none mt-1">D{{ day.id }}</span>
+            <div v-for="(day, index) in days" :key="index" 
+                 @click="currentDayIndex = index"
+                 :class="['flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all', 
+                          currentDayIndex === index ? 'bg-white text-[#43968F] shadow-md' : 'bg-white/20 text-white opacity-70']">
+                <span class="text-[10px]">{{ day.dateLabel }}</span>
+                <span class="text-xl font-bold">D{{ index + 1 }}</span>
             </div>
         </div>
     </div>
 
-    <main class="px-5 -mt-4">
-        <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-50 mb-4">
-            <div class="p-4 flex justify-between items-center">
-                <h3 class="font-bold text-gray-700 text-sm">今日路線預覽</h3>
-                <span class="text-[10px] bg-green-100 text-green-600 px-2 py-1 rounded-full">已顯示我當前位置</span>
-            </div>
-            <div class="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameborder="0" 
-                    style="border:0"
-                    src="https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY&q=Gimhae+Airport+Busan,Haeundae+Beach,My+Location" 
-                    allowfullscreen>
-                </iframe>
-                <div class="absolute bottom-2 left-2 right-2 bg-black/60 text-white text-[10px] p-2 rounded-lg backdrop-blur-md">
-                    <i class="fas fa-info-circle mr-1"></i> 已釘選：{{ itineraryLocations }}
-                </div>
-            </div>
+    <main class="p-5">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Day {{ currentDayIndex + 1 }} 行程</h2>
+            <button @click="showModal = true" class="text-teal-main font-bold">+ 新增行程</button>
         </div>
 
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-50 flex justify-between items-center mb-6">
-            <div>
-                <h2 class="text-xl font-bold text-gray-800">{{ currentDayData.fullDate }}</h2>
-                <p class="text-gray-400 text-sm mt-1">今日共有 {{ currentDayData.items.length }} 個行程</p>
-            </div>
-            <div class="text-right">
-                <button @click="openFullMap" class="bg-teal-main/10 text-teal-main px-4 py-2 rounded-xl text-xs font-bold">
-                    開啟大圖導航
-                </button>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2 text-teal-main font-bold mb-6 px-2 cursor-pointer" @click="showModal = true">
-            <div class="w-6 h-6 rounded-full border-2 border-teal-main flex items-center justify-center text-xs"><i class="fas fa-plus"></i></div>
-            <span>新增行程</span>
+        <div v-if="currentDayItems.length === 0" class="text-center py-20 text-gray-300">
+            目前這天還沒有行程喔！
         </div>
 
         <div class="space-y-4">
-            <div v-for="(item, index) in currentDayData.items" :key="index" class="relative pl-6 border-l-2 border-teal-main/20 ml-3">
-                <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-4 border-teal-main"></div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                        <span class="text-xs font-bold text-teal-main">{{ item.time }}</span>
-                        <h4 class="font-bold text-gray-800">{{ item.location }}</h4>
-                    </div>
-                    <button @click="openNav(item.location)" class="text-blue-500 bg-blue-50 w-10 h-10 rounded-full flex items-center justify-center">
-                        <i class="fas fa-location-arrow"></i>
-                    </button>
+            <div v-for="(item, idx) in currentDayItems" :key="idx" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between">
+                <div>
+                    <span class="text-xs font-bold text-teal-main">{{ item.time }}</span>
+                    <h4 class="font-bold text-gray-800 text-lg">{{ item.location }}</h4>
                 </div>
+                <button @click="deleteItem(idx)" class="text-red-300 px-2"><i class="fas fa-trash"></i></button>
             </div>
         </div>
+        
+        <button v-if="days.length > 1" @click="removeDay" class="mt-10 w-full text-red-400 text-sm opacity-50">刪除這一天行程</button>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-lg rounded-t-3xl">
-        <i class="fas fa-calendar-day text-teal-main text-xl"></i>
-        <i @click="openFullMap" class="fas fa-map-marked-alt text-gray-300 text-xl cursor-pointer"></i>
-        <i class="fas fa-wallet text-gray-300 text-xl"></i>
-        <i class="fas fa-user text-gray-300 text-xl"></i>
-    </nav>
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end">
+        <div class="bg-white w-full rounded-t-[32px] p-8">
+            <h3 class="text-xl font-bold mb-4">新增行程</h3>
+            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
+            <input v-model="newItem.location" type="text" placeholder="要去哪裡？" class="w-full p-4 bg-gray-50 rounded-2xl mb-6 border-none ring-1 ring-gray-100">
+            <div class="flex gap-4">
+                <button @click="saveItem" class="flex-1 bg-teal-main text-white py-4 rounded-2xl font-bold">確認</button>
+                <button @click="showModal = false" class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold">取消</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    const { createApp, ref, reactive, computed } = Vue;
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
     createApp({
         setup() {
-            const currentDay = ref(1);
-            const days = ref([{id:1, date:'2/23'}, {id:2, date:'2/24'}, {id:3, date:'2/25'}]);
-            const allData = ref({
-                1: { fullDate: '02月23日', items: [{time:'14:00', location:'金海國際機場'}, {time:'18:00', location:'海雲台海水浴場'}] },
-                2: { fullDate: '02月24日', items: [{time:'10:00', location:'甘川洞文化村'}] },
-                3: { fullDate: '02月25日', items: [] }
+            const currentDayIndex = ref(0);
+            const showModal = ref(false);
+            const newItem = ref({ time: '', location: '' });
+            
+            // 初始資料架構
+            const days = ref([
+                { dateLabel: '02/23', items: [{time: '12:00', location: '抵達釜山'}] }
+            ]);
+
+            const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
+
+            // 功能：新增日期
+            const addNewDay = () => {
+                const lastDay = days.value[days.value.length - 1];
+                // 這裡簡單處理日期遞增，實際可串接 Date 物件
+                days.value.push({ dateLabel: 'Next', items: [] });
+                currentDayIndex.value = days.value.length - 1;
+            };
+
+            const removeDay = () => {
+                if(confirm('確定要刪除這整天的行程嗎？')) {
+                    days.value.splice(currentDayIndex.value, 1);
+                    currentDayIndex.value = 0;
+                }
+            }
+
+            const saveItem = () => {
+                if (newItem.value.time && newItem.value.location) {
+                    days.value[currentDayIndex.value].items.push({ ...newItem.value });
+                    days.value[currentDayIndex.value].items.sort((a, b) => a.time.localeCompare(b.time));
+                    newItem.value = { time: '', location: '' };
+                    showModal.value = false;
+                }
+            };
+
+            const deleteItem = (idx) => {
+                days.value[currentDayIndex.value].items.splice(idx, 1);
+            }
+
+            // --- 關鍵功能：本地儲存 ---
+            watch(days, (newVal) => {
+                localStorage.setItem('korea_travel_data', JSON.stringify(newVal));
+            }, { deep: true });
+
+            onMounted(() => {
+                const saved = localStorage.getItem('korea_travel_data');
+                if (saved) {
+                    days.value = JSON.parse(saved);
+                }
             });
 
-            const currentDayData = computed(() => allData.value[currentDay.value]);
-            const itineraryLocations = computed(() => currentDayData.value.items.map(i => i.location).join(', '));
-
-            const openFullMap = () => {
-                const locs = currentDayData.value.items.map(i => encodeURIComponent(i.location)).join('/');
-                window.open(`https://www.google.com/maps/dir/My+Location/${locs}`, '_blank');
-            };
-
-            const openNav = (loc) => {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`, '_blank');
-            };
-
-            return { currentDay, days, currentDayData, itineraryLocations, openFullMap, openNav };
+            return { days, currentDayIndex, currentDayItems, showModal, newItem, addNewDay, saveItem, deleteItem, removeDay };
         }
     }).mount('#app')
 </script>
