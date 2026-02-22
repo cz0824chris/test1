@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>2026 釜山孝親輕奢團 (Firebase 版)</title>
+    <title>2026 釜山孝親輕奢團 (修復版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F0F4F4; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F0F4F4; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .bg-teal-main { background-color: #43968F; }
         .text-teal-main { color: #43968F; }
@@ -33,10 +30,8 @@
                 <h1 class="text-2xl font-bold italic">2026 韓國釜山旅遊</h1>
                 <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團 · 雲端即時同步</p>
             </div>
-            <div class="flex gap-2">
-                <div @click="showAddDayModal = true" class="bg-white text-teal-600 p-2 rounded-lg shadow-sm cursor-pointer">
-                    <i class="fas fa-plus"></i> <span class="text-xs font-bold">增加天數</span>
-                </div>
+            <div @click="showAddDayModal = true" class="bg-white text-teal-600 p-2 rounded-lg shadow-sm cursor-pointer">
+                <i class="fas fa-plus"></i> <span class="text-xs font-bold">增加天數</span>
             </div>
         </div>
 
@@ -49,6 +44,12 @@
                 <span class="text-2xl font-black mt-1">D{{ index + 1 }}</span>
                 <span class="text-[9px] mt-1">{{ day.weekDay }}</span>
             </div>
+        </div>
+
+        <div v-if="days.length > 0" class="mt-4 flex justify-center">
+            <button @click="deleteCurrentDay" class="text-[10px] bg-red-400/20 hover:bg-red-500 text-white px-3 py-1 rounded-full border border-red-200 transition">
+                <i class="fas fa-trash-alt mr-1"></i> 刪除第 {{ currentDayIndex + 1 }} 天
+            </button>
         </div>
     </div>
 
@@ -72,10 +73,12 @@
         <div class="bg-white rounded-3xl overflow-hidden card-shadow border border-gray-50">
             <div class="h-48 w-full bg-gray-100 relative">
                 <iframe v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0" :src="mapUrl" allowfullscreen></iframe>
-                <div v-else class="h-full flex items-center justify-center text-gray-400">尚無行程地點</div>
+                <div v-else class="h-full flex items-center justify-center text-gray-400 text-sm p-4 text-center">
+                    請點擊下方「新增」來加入目的地，地圖將自動定位
+                </div>
             </div>
-            <div class="p-3 px-5 flex justify-between items-center bg-white border-t border-gray-50">
-                <span class="text-[11px] text-gray-500 font-medium">今日路線同步中</span>
+            <div class="p-3 px-5 flex justify-between items-center bg-white border-t border-gray-100">
+                <span class="text-[11px] text-gray-400 font-medium italic"><i class="fas fa-map-marked-alt mr-1"></i>自動定位今日行程地點</span>
                 <button @click="openGoogleMaps" class="text-xs font-bold text-teal-main bg-teal-50 px-3 py-1.5 rounded-lg">導航</button>
             </div>
         </div>
@@ -83,9 +86,9 @@
 
     <main class="px-5">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-800"><i class="far fa-clock mr-2"></i>行程詳情</h2>
+            <h2 class="text-lg font-bold text-gray-800">行程詳情</h2>
             <button @click="showModal = true" class="text-teal-main text-xs font-bold border border-teal-main px-3 py-1 rounded-full">
-                <i class="fas fa-plus mr-1"></i>新增
+                <i class="fas fa-plus mr-1"></i>新增行程
             </button>
         </div>
 
@@ -105,19 +108,13 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-[0_-5px_20px_rgba(0,0,0,0.05)] rounded-t-[30px]">
-        <div class="flex flex-col items-center text-teal-main"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">行程</span></div>
-        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-map-marker-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">導航</span></div>
-        <div class="flex flex-col items-center text-gray-300" @click="resetData"><i class="fas fa-sync text-xl"></i><span class="text-[9px] mt-1 font-bold">重置</span></div>
-    </nav>
-
     <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end" @click.self="showModal = false">
         <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
             <h3 class="text-xl font-bold text-gray-800 mb-6">新增 D{{currentDayIndex+1}} 內容</h3>
             <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
-            <input v-model="newItem.location" type="text" placeholder="目的地" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
+            <input v-model="newItem.location" type="text" placeholder="目的地 (地圖定位用)" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none">
             <input v-model="newItem.note" type="text" placeholder="備註" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none">
-            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold">雲端儲存</button>
+            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg">雲端儲存</button>
         </div>
     </div>
 
@@ -136,7 +133,6 @@
 <script>
     const { createApp, ref, computed, watch, onMounted } = Vue;
 
-    // --- Firebase 配置 ---
     const firebaseConfig = {
         apiKey: "AIzaSyBBTwu32DacSxzFG_ntBRE255uhakbtuyo",
         authDomain: "korea-2026-82ad8.firebaseapp.com",
@@ -163,44 +159,17 @@
             const newDayWeek = ref('');
             const weatherInfo = ref({ temp: '', icon: '', desc: '' });
 
-            const defaultDays = [
-                { dateLabel: '2/23', weekDay: '(一)', items: [
-                    { time: '17:00', location: '釜山金海機場', note: '抵達' },
-                    { time: '18:00', location: '機場接送', note: '[預約接送] 搭乘大車直達飯店' },
-                    { time: '19:00', location: 'New CZ Nampo Hotel', note: '飯店 Check-in & 放行李' },
-                    { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐：補氣暖身' },
-                    { time: '20:45', location: 'BIFF 廣場', note: '堅果黑糖餅、魚板串、辣炒年糕' },
-                    { time: '21:15', location: 'Olive Young 光復路店', note: '吃飽散步逛藥妝' }
-                ]},
-                { dateLabel: '2/24', weekDay: '(二)', items: [
-                    { time: '09:30', location: 'New CZ Nampo Hotel', note: '[包車一日遊] 司機接大家' },
-                    { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦->青沙浦' },
-                    { time: '11:30', location: '青沙浦烤貝', note: '午餐：烤扇貝和海鮮拉麵' },
-                    { time: '13:30', location: '海東龍宮寺', note: '海邊最美寺廟' },
-                    { time: '15:00', location: '樂天 Outlet', note: '逛街下午茶' },
-                    { time: '18:00', location: '伍班長烤肉', note: '晚餐：海雲台烤肉' }
-                ]},
-                { dateLabel: '2/25', weekDay: '(三)', items: [
-                    { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
-                    { time: '12:30', location: '扎嘎其市場', note: '午餐：帝王蟹/生魚片' },
-                    { time: '15:00', location: '松島海水皮亞', note: '汗蒸幕體驗' },
-                    { time: '18:30', location: '李才牟比薩', note: '釜山最強起司披薩' }
-                ]},
-                { dateLabel: '2/26', weekDay: '(四)', items: [
-                    { time: '09:30', location: '龍頭山公園', note: '晨間散步/樂天超市' },
-                    { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐' },
-                    { time: '12:00', location: '飯店', note: '預約送機' },
-                    { time: '15:00', location: '釜山金海機場', note: '返家' }
-                ]}
-            ];
-
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
+            
+            // 修正：使用不需要 API Key 的嵌入式地圖
             const mapUrl = computed(() => {
-                const locs = currentDayItems.value.map(i => i.location);
-                return locs.length ? `https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY_NOT_NEEDED_FOR_BASIC&q=${encodeURIComponent(locs.join(' '))}&zoom=13` : null;
+                const locs = currentDayItems.value.map(i => i.location).filter(l => l);
+                if (!locs.length) return null;
+                // 使用 Google 搜尋嵌入模式，將行程目的地串起來
+                const query = encodeURIComponent(locs.join(' '));
+                return `https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
             });
 
-            // 抓取天氣
             const fetchWeather = async (index) => {
                 try {
                     const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.1796&longitude=129.0756&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`);
@@ -209,26 +178,18 @@
                     const min = Math.round(data.daily.temperature_2m_min[index] || data.daily.temperature_2m_min[0]);
                     weatherInfo.value = { temp: `${min}° - ${max}°`, icon: 'fas fa-cloud-sun', desc: '多雲時晴' };
                 } catch (e) {
-                    weatherInfo.value = { temp: '--°', icon: 'fas fa-sun', desc: '釜山預報' };
+                    weatherInfo.value = { temp: '--°', icon: 'fas fa-sun', desc: '抓取失敗' };
                 }
             };
 
-            // Firebase 即時同步讀取
             onMounted(() => {
                 travelRef.on('value', (snapshot) => {
                     const val = snapshot.val();
-                    if (val) {
-                        days.value = val;
-                    } else {
-                        // 初始化資料
-                        days.value = defaultDays;
-                        travelRef.set(defaultDays);
-                    }
+                    if (val) days.value = val;
                     fetchWeather(currentDayIndex.value);
                 });
             });
 
-            // 行動：儲存、刪除、新增天數全部同步雲端
             const saveItem = () => {
                 if (newItem.value.location) {
                     days.value[currentDayIndex.value].items.push({ ...newItem.value });
@@ -254,12 +215,25 @@
                 }
             };
 
-            const resetData = () => { if(confirm('重置雲端行程？')) travelRef.set(defaultDays); };
-            const openGoogleMaps = () => window.open(`https://www.google.com/maps/search/釜山+${encodeURIComponent(currentDayItems.value.map(i => i.location).join(' '))}`, '_blank');
+            // 新增：刪除當天天數功能
+            const deleteCurrentDay = () => {
+                if (confirm(`確定要刪除第 ${currentDayIndex.value + 1} 天 (D${currentDayIndex.value + 1}) 的所有行程嗎？`)) {
+                    days.value.splice(currentDayIndex.value, 1);
+                    if (currentDayIndex.value >= days.value.length) {
+                        currentDayIndex.value = Math.max(0, days.value.length - 1);
+                    }
+                    travelRef.set(days.value);
+                }
+            };
+
+            const openGoogleMaps = () => {
+                const query = currentDayItems.value.map(i => i.location).join(' ');
+                window.open(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, '_blank');
+            };
 
             watch(currentDayIndex, (idx) => fetchWeather(idx));
 
-            return { days, currentDayIndex, currentDayItems, showModal, showAddDayModal, newItem, newDayDate, newDayWeek, weatherInfo, mapUrl, saveItem, deleteItem, openGoogleMaps, resetData, addNewDay };
+            return { days, currentDayIndex, currentDayItems, showModal, showAddDayModal, newItem, newDayDate, newDayWeek, weatherInfo, mapUrl, saveItem, deleteItem, openGoogleMaps, addNewDay, deleteCurrentDay };
         }
     }).mount('#app')
 </script>
