@@ -23,7 +23,7 @@
 
 <div id="app">
     <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-6">
             <div>
                 <h1 class="text-2xl font-bold italic">2026 韓國釜山旅遊</h1>
                 <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親團 · 全功能同步版</p>
@@ -34,23 +34,6 @@
                 </div>
                 <div @click="showAddDayModal = true" class="bg-white text-teal-600 p-2 rounded-lg shadow-sm cursor-pointer text-center min-w-[50px]">
                     <i class="fas fa-plus"></i> <div class="text-[10px] font-bold">天數</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 mb-6 border border-white/20">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider opacity-80"><i class="fas fa-sync-alt mr-1"></i> 即時匯率換算</span>
-                <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">1 TWD ≈ {{ exchangeRate }} KRW</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="relative">
-                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/60">TWD</span>
-                    <input v-model="calcTWD" @input="convertCurrency('TWD')" type="number" class="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 pl-9 pr-2 text-sm outline-none focus:bg-white/20 transition" placeholder="台幣">
-                </div>
-                <div class="relative">
-                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/60">KRW</span>
-                    <input v-model="calcKRW" @input="convertCurrency('KRW')" type="number" class="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 pl-9 pr-2 text-sm outline-none focus:bg-white/20 transition" placeholder="韓幣">
                 </div>
             </div>
         </div>
@@ -258,6 +241,7 @@
             const days = ref([]);
             const bills = ref([]);
             const currentDayIndex = ref(0);
+            // 這裡改成您要求的名字
             const members = ref(['阿晟', '阿涵', '阿善', '媽媽', '阿拉']);
             
             const showModal = ref(false);
@@ -267,11 +251,6 @@
             const isEditingItem = ref(false);
             const weatherInfo = ref({ temp: '--°', icon: 'fas fa-spinner fa-spin', desc: '載入中...', rain: 0 });
             
-            // 匯率相關
-            const exchangeRate = ref(45.85); // 預設參考匯率
-            const calcTWD = ref(null);
-            const calcKRW = ref(null);
-
             const newItem = ref({ time: '09:00', location: '', note: '' });
             const selectedItem = ref({});
             const selectedItemIndex = ref(null);
@@ -287,26 +266,7 @@
                 return `https://www.google.com/maps/embed/v1/search?key=${firebaseConfig.apiKey}&q=${encodeURIComponent(locations.join(' ') + ' Busan')}`;
             });
 
-            // 貨幣換算邏輯
-            const convertCurrency = (type) => {
-                if(type === 'TWD') {
-                    calcKRW.value = calcTWD.value ? Math.round(calcTWD.value * exchangeRate.value) : null;
-                } else {
-                    calcTWD.value = calcKRW.value ? Math.round(calcKRW.value / exchangeRate.value) : null;
-                }
-            };
-
-            // 獲取最新匯率
-            const fetchExchangeRate = async () => {
-                try {
-                    const res = await fetch('https://open.er-api.com/v6/latest/TWD');
-                    const data = await res.json();
-                    if(data.rates && data.rates.KRW) {
-                        exchangeRate.value = parseFloat(data.rates.KRW.toFixed(2));
-                    }
-                } catch (e) { console.error('匯率更新失敗'); }
-            };
-
+            // 分帳計算邏輯
             const personalTotals = computed(() => {
                 const totals = {};
                 members.value.forEach(m => totals[m] = 0);
@@ -333,6 +293,7 @@
                 return res;
             });
 
+            // 天氣 API 獲取
             const fetchWeather = async (idx) => {
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.17&longitude=129.07&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FSeoul`);
@@ -394,16 +355,18 @@
                 billRef.on('value', snap => { bills.value = snap.val() || []; });
                 membersRef.on('value', snap => { 
                     if(snap.val()) members.value = snap.val(); 
-                    else membersRef.set(members.value);
+                    else {
+                        // 初始名單
+                        members.value = ['阿晟', '阿涵', '阿善', '媽媽', '阿拉'];
+                        membersRef.set(members.value);
+                    }
                 });
                 fetchWeather(0);
-                fetchExchangeRate();
             });
             watch(currentDayIndex, (idx) => fetchWeather(idx));
 
             return { 
                 days, bills, currentDayIndex, members, showModal, showBillModal, showDetailModal, showAddDayModal, isEditingItem, weatherInfo, newItem, selectedItem, editingItemData, newBill, newMemberName, mapUrl, splitResults, personalTotals, newDayInput,
-                exchangeRate, calcTWD, calcKRW, convertCurrency,
                 saveItem, viewItemDetail, closeDetailModal, saveEditedItem, deleteSelectedItem, addBill, deleteBill, addMember, removeMember, deleteCurrentDay, addNewDay, currentDayItems: computed(() => days.value[currentDayIndex.value]?.items || [])
             };
         }
@@ -411,4 +374,5 @@
 </script>
 </body>
 </html>
+
 
