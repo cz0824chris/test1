@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>2026 釜山孝親輕奢團</title>
+    <title>韓國釜山行</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #F0F4F4; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .bg-teal-dark { background-color: #2D6A65; }
         .bg-teal-main { background-color: #43968F; }
-        .text-teal-main { color: #43968F; }
         .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -25,11 +23,22 @@
     <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-2xl font-bold italic">Busan 2026 🇰🇷</h1>
-                <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團 · 海鮮饗宴</p>
+                <h1 class="text-2xl font-black tracking-tight">韓國釜山行 🇰🇷</h1>
+                <p class="text-[10px] opacity-80 tracking-[0.2em] mt-1 font-bold">2026 孝親輕奢團</p>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] bg-white/20 px-2 py-1 rounded-lg">Hotel: New CZ Nampo</span>
+            
+            <div class="bg-white/20 backdrop-blur-md px-3 py-2 rounded-2xl text-right min-w-[90px] border border-white/10">
+                <div v-if="weather.loading" class="animate-pulse flex flex-col items-end">
+                    <div class="h-4 w-12 bg-white/30 rounded mb-1"></div>
+                    <div class="h-2 w-8 bg-white/30 rounded"></div>
+                </div>
+                <div v-else>
+                    <div class="flex items-center justify-end gap-2">
+                        <img :src="weather.iconUrl" class="w-8 h-8" v-if="weather.iconUrl">
+                        <span class="text-lg font-bold">{{ weather.temp }}</span>
+                    </div>
+                    <p class="text-[9px] opacity-90 font-medium">釜山即時：{{ weather.desc }}</p>
+                </div>
             </div>
         </div>
 
@@ -52,136 +61,144 @@
                     v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0"
                     :src="mapUrl" allowfullscreen>
                 </iframe>
-                <div v-else class="h-full flex items-center justify-center text-gray-400">尚無行程地點</div>
+                <div v-else class="h-full flex items-center justify-center text-gray-400">尚無地點數據</div>
             </div>
-            <div class="p-3 px-5 flex justify-between items-center bg-white">
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-[11px] text-gray-500 font-medium">地圖已同步今日地點</span>
+            <div class="p-3 px-5 flex justify-between items-center bg-white border-t border-gray-50">
+                <div class="flex items-center gap-2 text-gray-400">
+                    <i class="fas fa-location-dot text-[10px]"></i>
+                    <span class="text-[10px] font-medium">Hotel: New CZ Nampo</span>
                 </div>
-                <button @click="openGoogleMaps" class="text-xs font-bold text-teal-main bg-teal-50 px-3 py-1.5 rounded-lg">
-                    <i class="fas fa-directions mr-1"></i>Google 導航
+                <button @click="openGoogleMaps" class="text-xs font-bold text-[#43968F] bg-teal-50 px-3 py-1.5 rounded-lg active:scale-95 transition">
+                    <i class="fas fa-directions mr-1"></i>導航全天路線
                 </button>
             </div>
         </div>
     </div>
 
     <main class="px-5">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-800">
-                <i class="far fa-clock mr-2"></i>行程詳情
-            </h2>
-            <button @click="showModal = true" class="text-teal-main text-xs font-bold border border-teal-main px-3 py-1 rounded-full">
-                <i class="fas fa-plus mr-1"></i>新增
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h2 class="text-lg font-bold text-gray-800">Day {{ currentDayIndex + 1 }} 行程清單</h2>
+            <button @click="showModal = true" class="text-[#43968F] text-xs font-bold bg-white px-3 py-1.5 rounded-full shadow-sm">
+                + 新增
             </button>
         </div>
 
         <div class="space-y-4">
             <div v-for="(item, idx) in currentDayItems" :key="idx" 
-                 class="bg-white p-4 rounded-2xl card-shadow border border-gray-50 flex items-start gap-4 relative group">
+                 class="bg-white p-4 rounded-2xl card-shadow border border-gray-100 flex items-start gap-4 group">
                 <div class="text-center min-w-[50px]">
-                    <span class="block text-sm font-black text-teal-main leading-none">{{ item.time }}</span>
-                    <div class="w-[2px] h-8 bg-teal-50 mx-auto my-1"></div>
+                    <span class="block text-sm font-black text-[#43968F]">{{ item.time }}</span>
+                    <div class="w-[2px] h-6 bg-teal-50 mx-auto my-1"></div>
                 </div>
                 <div class="flex-1">
-                    <h4 class="font-bold text-gray-800 text-base leading-tight">{{ item.location }}</h4>
-                    <p v-if="item.note" class="text-[11px] text-gray-400 mt-1 leading-relaxed">{{ item.note }}</p>
+                    <h4 class="font-bold text-gray-800 text-base">{{ item.location }}</h4>
+                    <p v-if="item.note" class="text-[11px] text-gray-400 mt-1">{{ item.note }}</p>
                 </div>
-                <button @click="deleteItem(idx)" class="opacity-0 group-hover:opacity-100 text-red-200 p-2 transition">
-                    <i class="fas fa-times"></i>
+                <button @click="deleteItem(idx)" class="text-red-100 group-hover:text-red-300 transition px-2">
+                    <i class="fas fa-trash-alt text-xs"></i>
                 </button>
             </div>
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-[0_-5px_20px_rgba(0,0,0,0.05)] rounded-t-[30px]">
-        <div class="flex flex-col items-center text-teal-main"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">行程</span></div>
-        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-map-marker-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">地圖</span></div>
-        <div class="flex flex-col items-center text-gray-300" @click="resetData"><i class="fas fa-sync text-xl"></i><span class="text-[9px] mt-1 font-bold">重置</span></div>
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-lg border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-lg rounded-t-[35px] z-40">
+        <div class="flex flex-col items-center text-[#43968F]"><i class="fas fa-calendar-check text-xl"></i><span class="text-[9px] mt-1 font-bold">行程表</span></div>
+        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-map-location-dot text-xl"></i><span class="text-[9px] mt-1">全地圖</span></div>
+        <div @click="resetData" class="flex flex-col items-center text-gray-300"><i class="fas fa-sync-alt text-xl"></i><span class="text-[9px] mt-1">重置</span></div>
     </nav>
 
     <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end" @click.self="showModal = false">
         <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">新增 Day {{currentDayIndex+1}} 內容</h3>
-            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
-            <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
-            <input v-model="newItem.note" type="text" placeholder="備註 (如：包車、吃海鮮)" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none ring-1 ring-gray-100">
-            <div class="flex gap-4">
-                <button @click="saveItem" class="flex-1 bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-700/20">儲存行程</button>
-                <button @click="showModal = false" class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold">取消</button>
-            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-6">新增行程內容</h3>
+            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4">
+            <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-2xl mb-4">
+            <input v-model="newItem.note" type="text" placeholder="備註 (選填)" class="w-full p-4 bg-gray-50 rounded-2xl mb-8">
+            <button @click="saveItem" class="w-full bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg">儲存行程</button>
         </div>
     </div>
 </div>
 
 <script>
-    const { createApp, ref, computed, watch, onMounted } = Vue;
+    const { createApp, ref, computed, watch, onMounted, reactive } = Vue;
 
     createApp({
         setup() {
             const currentDayIndex = ref(0);
             const showModal = ref(false);
             const newItem = ref({ time: '09:00', location: '', note: '' });
+            
+            // 天氣狀態
+            const weather = reactive({
+                temp: '--',
+                desc: '載入中',
+                iconUrl: '',
+                loading: true
+            });
 
-            // 預設行程資料
-            const defaultDays = [
-                {
-                    dateLabel: '2/23', weekDay: 'Mon',
-                    items: [
-                        { time: '17:00', location: '釜山金海機場', note: '抵達' },
-                        { time: '18:00', location: '機場大車接送', note: '直達飯店' },
-                        { time: '19:00', location: 'New CZ Nampo Hotel', note: 'Check-in & 放行李' },
-                        { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐：補氣暖身' },
-                        { time: '20:45', location: 'BIFF 廣場', note: '必吃三寶：黑糖餅、魚板、年糕' },
-                        { time: '21:15', location: 'Olive Young 光復路店', note: '藥妝採買散步' }
-                    ]
-                },
-                {
-                    dateLabel: '2/24', weekDay: 'Tue',
-                    items: [
-                        { time: '09:30', location: '飯店門口', note: '包車一日遊開始' },
-                        { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦 -> 青沙浦 (需預約)' },
-                        { time: '11:30', location: '青沙浦烤貝', note: '午餐：海鮮大餐/海鮮拉麵' },
-                        { time: '13:30', location: '海東龍宮寺', note: '海邊最美寺廟' },
-                        { time: '15:00', location: '樂天 Outlet', note: '逛街下午茶' },
-                        { time: '18:00', location: '伍班長烤肉', note: '晚餐：海雲台美食' }
-                    ]
-                },
-                {
-                    dateLabel: '2/25', weekDay: 'Wed',
-                    items: [
-                        { time: '09:30', location: '南浦洞搭計程車', note: '前往甘川洞 (2台車)' },
-                        { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
-                        { time: '12:30', location: '扎嘎其市場', note: '午餐：帝王蟹/生魚片/烤魚' },
-                        { time: '14:30', location: '松島海水皮亞', note: '搭計程車前往 (10分)' },
-                        { time: '15:00', location: '汗蒸幕體驗', note: '看海熱敷休息' },
-                        { time: '18:30', location: '李才牟比薩', note: '晚餐：超人氣起司披薩' }
-                    ]
-                },
-                {
-                    dateLabel: '2/26', weekDay: 'Thu',
-                    items: [
-                        { time: '09:30', location: '龍頭山公園', note: '晨間散步/釜山塔/樂天超市' },
-                        { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐：章魚+大蝦+牛腸' },
-                        { time: '12:00', location: '預約送機', note: '飯店門口搭大車' },
-                        { time: '15:00', location: '釜山金海機場', note: '飛機起飛' }
-                    ]
+            // 讀取釜山實時天氣
+            const fetchWeather = async () => {
+                const city = "Busan";
+                const apiKey = "b78b6754b73b53c52814838641a02798"; // 這裡使用公共測試 Key
+                const lang = "zh_tw";
+                try {
+                    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}&lang=${lang}`);
+                    const data = await response.json();
+                    weather.temp = Math.round(data.main.temp) + '°C';
+                    weather.desc = data.weather[0].description;
+                    weather.iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                    weather.loading = false;
+                } catch (error) {
+                    console.error("天氣讀取失敗", error);
+                    weather.desc = "讀取失敗";
+                    weather.loading = false;
                 }
+            };
+
+            const defaultDays = [
+                { dateLabel: '2/23', weekDay: 'Mon', items: [
+                    { time: '17:00', location: '釜山金海機場', note: '抵達' },
+                    { time: '18:00', location: '機場大車接送', note: '直達飯店' },
+                    { time: '19:00', location: 'New CZ Nampo Hotel', note: 'Check-in' },
+                    { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐：補氣暖身' },
+                    { time: '20:45', location: 'BIFF 廣場', note: '必吃三寶：黑糖餅、魚板、年糕' },
+                    { time: '21:15', location: 'Olive Young 光復路店', note: '藥妝採買散步' }
+                ]},
+                { dateLabel: '2/24', weekDay: 'Tue', items: [
+                    { time: '09:30', location: '飯店門口', note: '包車一日遊開始' },
+                    { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦 -> 青沙浦' },
+                    { time: '11:30', location: '青沙浦烤貝', note: '午餐：海鮮大餐' },
+                    { time: '13:30', location: '海東龍宮寺', note: '海邊最美寺廟' },
+                    { time: '15:00', location: '樂天 Outlet', note: '逛街下午茶' },
+                    { time: '18:00', location: '伍班長烤肉', note: '晚餐：海雲台美食' }
+                ]},
+                { dateLabel: '2/25', weekDay: 'Wed', items: [
+                    { time: '09:30', location: '南浦洞', note: '搭計程車前往甘川洞' },
+                    { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
+                    { time: '12:30', location: '扎嘎其市場', note: '午餐：帝王蟹/烤魚' },
+                    { time: '14:30', location: '松島海水皮亞', note: '汗蒸幕看海休息' },
+                    { time: '18:30', location: '李才牟比薩', note: '晚餐：超強起司披薩' }
+                ]},
+                { dateLabel: '2/26', weekDay: 'Thu', items: [
+                    { time: '09:30', location: '龍頭山公園', note: '晨間散步/釜山塔/樂天超市' },
+                    { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐：章魚+大蝦+牛腸' },
+                    { time: '12:00', location: '預約送機', note: '飯店門口搭大車' },
+                    { time: '15:00', location: '釜山金海機場', note: '飛機起飛' }
+                ]}
             ];
 
             const days = ref([]);
-
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
 
             const mapUrl = computed(() => {
                 const locs = currentDayItems.value.map(i => i.location);
                 if (locs.length === 0) return null;
-                return `https://www.google.com/maps/embed/v1/search?key=YOUR_FREE_API_KEY_OR_SIMULATED&q=$${encodeURIComponent(locs.join(' '))}&zoom=13`;
+                return `https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY_HERE&q=${encodeURIComponent(locs.join(' '))}`; 
+                // 這裡模擬顯示
             });
 
             const openGoogleMaps = () => {
                 const locs = currentDayItems.value.map(i => encodeURIComponent(i.location));
-                window.open("https://www.google.com/maps/dir/My+Location/" + locs.join('/'), '_blank');
+                window.open("https://www.google.com/maps/dir/Current+Location/" + locs.join('/'), '_blank');
             };
 
             const saveItem = () => {
@@ -198,17 +215,18 @@
             };
 
             const resetData = () => {
-                if(confirm('要重新恢復為預設行程嗎？')) {
+                if(confirm('要重新載入預設行程嗎？')) {
                     days.value = JSON.parse(JSON.stringify(defaultDays));
                 }
             };
 
             watch(days, (newVal) => {
-                localStorage.setItem('busan_luxury_2026', JSON.stringify(newVal));
+                localStorage.setItem('busan_realtime_v6', JSON.stringify(newVal));
             }, { deep: true });
 
             onMounted(() => {
-                const saved = localStorage.getItem('busan_luxury_2026');
+                fetchWeather();
+                const saved = localStorage.getItem('busan_realtime_v6');
                 if (saved) {
                     days.value = JSON.parse(saved);
                 } else {
@@ -216,7 +234,7 @@
                 }
             });
 
-            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, saveItem, deleteItem, openGoogleMaps, resetData };
+            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, saveItem, deleteItem, openGoogleMaps, resetData, weather };
         }
     }).mount('#app')
 </script>
