@@ -5,109 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>釜山旅遊導航助手</title>
+    <title>2026 釜山孝親輕奢團</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F8FAFC; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F0F4F4; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .bg-teal-dark { background-color: #2D6A65; }
         .bg-teal-main { background-color: #43968F; }
         .text-teal-main { color: #43968F; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen shadow-2xl overflow-x-hidden pb-20">
+<body class="max-w-md mx-auto min-h-screen shadow-2xl overflow-x-hidden pb-24">
 
 <div id="app">
-    <div class="bg-teal-main text-white pt-8 pb-4 px-5 rounded-b-[40px] shadow-lg">
-        <div class="flex justify-between items-center mb-6">
+    <div class="bg-teal-main text-white pt-8 pb-6 px-5 rounded-b-[40px] shadow-lg relative">
+        <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-2xl font-bold">釜山行程行程 🇰🇷</h1>
-                <p class="text-[10px] opacity-70">地圖已自動釘選當日地點</p>
+                <h1 class="text-2xl font-bold italic">Busan 2026 🇰🇷</h1>
+                <p class="text-[10px] opacity-90 tracking-widest mt-1">5人孝親輕奢團 · 海鮮饗宴</p>
             </div>
-            <button @click="addNewDay" class="bg-white/20 px-4 py-2 rounded-2xl text-xs font-bold">
-                <i class="fas fa-plus-circle mr-1"></i>新增天數
-            </button>
+            <div class="text-right">
+                <span class="text-[10px] bg-white/20 px-2 py-1 rounded-lg">Hotel: New CZ Nampo</span>
+            </div>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+        <div class="flex gap-3 overflow-x-auto hide-scrollbar py-2">
             <div v-for="(day, index) in days" :key="index" 
                  @click="currentDayIndex = index"
-                 :class="['flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all', 
-                          currentDayIndex === index ? 'bg-white text-[#43968F] shadow-md scale-105' : 'bg-white/20 text-white opacity-70']">
-                <span class="text-[10px] font-medium">Day</span>
-                <span class="text-xl font-bold leading-none mt-1">{{ index + 1 }}</span>
+                 :class="['flex-shrink-0 w-16 h-24 rounded-2xl flex flex-col items-center justify-center transition-all duration-300', 
+                          currentDayIndex === index ? 'bg-white text-[#43968F] shadow-xl scale-110' : 'bg-white/10 text-white opacity-60']">
+                <span class="text-[10px] uppercase font-bold">{{ day.dateLabel }}</span>
+                <span class="text-2xl font-black mt-1">D{{ index + 1 }}</span>
+                <span class="text-[9px] mt-1">{{ day.weekDay }}</span>
             </div>
         </div>
     </div>
 
     <div class="px-5 -mt-4 mb-6">
-        <div class="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-50">
-            <div class="h-56 w-full relative">
+        <div class="bg-white rounded-3xl overflow-hidden card-shadow border border-gray-50">
+            <div class="h-48 w-full bg-gray-100 relative">
                 <iframe 
-                    v-if="mapUrl"
-                    width="100%" height="100%" frameborder="0" style="border:0"
+                    v-if="mapUrl" width="100%" height="100%" frameborder="0" style="border:0"
                     :src="mapUrl" allowfullscreen>
                 </iframe>
-                <div v-else class="h-full flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
-                    目前這天尚無行程地點可釘選
-                </div>
+                <div v-else class="h-full flex items-center justify-center text-gray-400">尚無行程地點</div>
             </div>
-            <div class="p-3 bg-white flex justify-between items-center">
-                <span class="text-[10px] text-gray-400"><i class="fas fa-location-arrow mr-1"></i>包含目前位置</span>
-                <button @click="openGoogleMaps" class="text-xs font-bold text-blue-500">開啟大圖導航</button>
+            <div class="p-3 px-5 flex justify-between items-center bg-white">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-[11px] text-gray-500 font-medium">地圖已同步今日地點</span>
+                </div>
+                <button @click="openGoogleMaps" class="text-xs font-bold text-teal-main bg-teal-50 px-3 py-1.5 rounded-lg">
+                    <i class="fas fa-directions mr-1"></i>Google 導航
+                </button>
             </div>
         </div>
     </div>
 
     <main class="px-5">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">當日行程清單</h2>
-            <button @click="showModal = true" class="bg-teal-main/10 text-teal-main px-4 py-2 rounded-xl text-xs font-bold">
-                + 新增時段
+            <h2 class="text-lg font-bold text-gray-800">
+                <i class="far fa-clock mr-2"></i>行程詳情
+            </h2>
+            <button @click="showModal = true" class="text-teal-main text-xs font-bold border border-teal-main px-3 py-1 rounded-full">
+                <i class="fas fa-plus mr-1"></i>新增
             </button>
-        </div>
-
-        <div v-if="currentDayItems.length === 0" class="text-center py-10 text-gray-300 italic">
-            尚未填寫行程地點...
         </div>
 
         <div class="space-y-4">
             <div v-for="(item, idx) in currentDayItems" :key="idx" 
-                 class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center group">
-                <div class="flex items-center gap-4">
-                    <div class="text-center border-r pr-4 border-gray-100">
-                        <span class="block text-xs font-bold text-teal-main">{{ item.time }}</span>
-                    </div>
-                    <h4 class="font-bold text-gray-700">{{ item.location }}</h4>
+                 class="bg-white p-4 rounded-2xl card-shadow border border-gray-50 flex items-start gap-4 relative group">
+                <div class="text-center min-w-[50px]">
+                    <span class="block text-sm font-black text-teal-main leading-none">{{ item.time }}</span>
+                    <div class="w-[2px] h-8 bg-teal-50 mx-auto my-1"></div>
                 </div>
-                <button @click="deleteItem(idx)" class="text-red-200 hover:text-red-400 transition">
-                    <i class="fas fa-trash-alt"></i>
+                <div class="flex-1">
+                    <h4 class="font-bold text-gray-800 text-base leading-tight">{{ item.location }}</h4>
+                    <p v-if="item.note" class="text-[11px] text-gray-400 mt-1 leading-relaxed">{{ item.note }}</p>
+                </div>
+                <button @click="deleteItem(idx)" class="opacity-0 group-hover:opacity-100 text-red-200 p-2 transition">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
-
-        <button v-if="days.length > 1" @click="removeDay" class="mt-12 w-full text-red-300 text-[10px] uppercase tracking-widest">
-            刪除第 {{ currentDayIndex + 1 }} 天整日記錄
-        </button>
     </main>
 
-    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end">
-        <div class="bg-white w-full rounded-t-[32px] p-8 animate-slide-up">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800">新增第 {{currentDayIndex + 1}} 天行程</h3>
-                <i @click="showModal = false" class="fas fa-times text-gray-300 text-xl"></i>
-            </div>
-            
-            <label class="block text-xs font-bold text-gray-400 mb-2 ml-1">選擇時間</label>
-            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100 focus:ring-teal-500">
-            
-            <label class="block text-xs font-bold text-gray-400 mb-2 ml-1">輸入地點 (如：海雲台、甘川洞)</label>
-            <input v-model="newItem.location" type="text" placeholder="輸入目的地名稱..." class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none ring-1 ring-gray-100 focus:ring-teal-500">
-            
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-gray-100 px-10 py-4 flex justify-between items-center shadow-[0_-5px_20px_rgba(0,0,0,0.05)] rounded-t-[30px]">
+        <div class="flex flex-col items-center text-teal-main"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">行程</span></div>
+        <div @click="openGoogleMaps" class="flex flex-col items-center text-gray-300"><i class="fas fa-map-marker-alt text-xl"></i><span class="text-[9px] mt-1 font-bold">地圖</span></div>
+        <div class="flex flex-col items-center text-gray-300" @click="resetData"><i class="fas fa-sync text-xl"></i><span class="text-[9px] mt-1 font-bold">重置</span></div>
+    </nav>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end" @click.self="showModal = false">
+        <div class="bg-white w-full rounded-t-[40px] p-8 animate-slide-up">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">新增 Day {{currentDayIndex+1}} 內容</h3>
+            <input v-model="newItem.time" type="time" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
+            <input v-model="newItem.location" type="text" placeholder="目的地名稱" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 border-none ring-1 ring-gray-100">
+            <input v-model="newItem.note" type="text" placeholder="備註 (如：包車、吃海鮮)" class="w-full p-4 bg-gray-50 rounded-2xl mb-8 border-none ring-1 ring-gray-100">
             <div class="flex gap-4">
-                <button @click="saveItem" class="flex-1 bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-700/20 active:scale-95 transition">儲存行程</button>
+                <button @click="saveItem" class="flex-1 bg-teal-main text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-700/20">儲存行程</button>
                 <button @click="showModal = false" class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold">取消</button>
             </div>
         </div>
@@ -121,48 +121,74 @@
         setup() {
             const currentDayIndex = ref(0);
             const showModal = ref(false);
-            const newItem = ref({ time: '12:00', location: '' });
-            const days = ref([
-                { items: [{time: '14:00', location: '金海國際機場'}] }
-            ]);
+            const newItem = ref({ time: '09:00', location: '', note: '' });
+
+            // 預設行程資料
+            const defaultDays = [
+                {
+                    dateLabel: '2/23', weekDay: 'Mon',
+                    items: [
+                        { time: '17:00', location: '釜山金海機場', note: '抵達' },
+                        { time: '18:00', location: '機場大車接送', note: '直達飯店' },
+                        { time: '19:00', location: 'New CZ Nampo Hotel', note: 'Check-in & 放行李' },
+                        { time: '19:30', location: '南浦洞 蔘雞湯', note: '晚餐：補氣暖身' },
+                        { time: '20:45', location: 'BIFF 廣場', note: '必吃三寶：黑糖餅、魚板、年糕' },
+                        { time: '21:15', location: 'Olive Young 光復路店', note: '藥妝採買散步' }
+                    ]
+                },
+                {
+                    dateLabel: '2/24', weekDay: 'Tue',
+                    items: [
+                        { time: '09:30', location: '飯店門口', note: '包車一日遊開始' },
+                        { time: '10:30', location: '海雲台天空膠囊列車', note: '尾浦 -> 青沙浦 (需預約)' },
+                        { time: '11:30', location: '青沙浦烤貝', note: '午餐：海鮮大餐/海鮮拉麵' },
+                        { time: '13:30', location: '海東龍宮寺', note: '海邊最美寺廟' },
+                        { time: '15:00', location: '樂天 Outlet', note: '逛街下午茶' },
+                        { time: '18:00', location: '伍班長烤肉', note: '晚餐：海雲台美食' }
+                    ]
+                },
+                {
+                    dateLabel: '2/25', weekDay: 'Wed',
+                    items: [
+                        { time: '09:30', location: '南浦洞搭計程車', note: '前往甘川洞 (2台車)' },
+                        { time: '10:00', location: '甘川洞文化村', note: '韓服體驗拍照' },
+                        { time: '12:30', location: '扎嘎其市場', note: '午餐：帝王蟹/生魚片/烤魚' },
+                        { time: '14:30', location: '松島海水皮亞', note: '搭計程車前往 (10分)' },
+                        { time: '15:00', location: '汗蒸幕體驗', note: '看海熱敷休息' },
+                        { time: '18:30', location: '李才牟比薩', note: '晚餐：超人氣起司披薩' }
+                    ]
+                },
+                {
+                    dateLabel: '2/26', weekDay: 'Thu',
+                    items: [
+                        { time: '09:30', location: '龍頭山公園', note: '晨間散步/釜山塔/樂天超市' },
+                        { time: '11:00', location: '螞蟻家章魚火鍋', note: '早午餐：章魚+大蝦+牛腸' },
+                        { time: '12:00', location: '預約送機', note: '飯店門口搭大車' },
+                        { time: '15:00', location: '釜山金海機場', note: '飛機起飛' }
+                    ]
+                }
+            ];
+
+            const days = ref([]);
 
             const currentDayItems = computed(() => days.value[currentDayIndex.value]?.items || []);
 
-            // 核心：動態地圖 URL 生成 (自動釘選)
             const mapUrl = computed(() => {
-                const locations = currentDayItems.value.map(i => i.location);
-                if (locations.length === 0) return null;
-                
-                // 使用 Google Maps Embed API 並開啟用戶定位
-                // 第一個點作為中心點，其餘作為釘選
-                const q = encodeURIComponent(locations.join(' '));
-                return `https://www.google.com/maps/embed/v1/search?key=YOUR_FREE_API_KEY_OR_SIMULATED&q=${q}&zoom=12`;
-                // 注意：實際上 Embed API 需要 API Key。
-                // 為了方便你直接使用 GitHub Pages，我們改成生成可點擊的導航連結。
-                // 下方 openGoogleMaps 函數會處理完整釘選。
+                const locs = currentDayItems.value.map(i => i.location);
+                if (locs.length === 0) return null;
+                return `https://www.google.com/maps/embed/v1/search?key=YOUR_FREE_API_KEY_OR_SIMULATED&q=$${encodeURIComponent(locs.join(' '))}&zoom=13`;
             });
 
             const openGoogleMaps = () => {
-                const locations = currentDayItems.value.map(i => encodeURIComponent(i.location));
-                if (locations.length === 0) {
-                    window.open('https://www.google.com/maps', '_blank');
-                    return;
-                }
-                // 自動釘選所有地點 + 目前位置
-                const baseUrl = "https://www.google.com/maps/dir/My+Location/";
-                window.open(baseUrl + locations.join('/'), '_blank');
-            };
-
-            const addNewDay = () => {
-                days.value.push({ items: [] });
-                currentDayIndex.value = days.value.length - 1;
+                const locs = currentDayItems.value.map(i => encodeURIComponent(i.location));
+                window.open("https://www.google.com/maps/dir/My+Location/" + locs.join('/'), '_blank');
             };
 
             const saveItem = () => {
                 if (newItem.value.location) {
                     days.value[currentDayIndex.value].items.push({ ...newItem.value });
                     days.value[currentDayIndex.value].items.sort((a, b) => a.time.localeCompare(b.time));
-                    newItem.value = { time: '12:00', location: '' };
+                    newItem.value = { time: '09:00', location: '', note: '' };
                     showModal.value = false;
                 }
             };
@@ -171,34 +197,33 @@
                 days.value[currentDayIndex.value].items.splice(idx, 1);
             };
 
-            const removeDay = () => {
-                if(confirm('確定刪除整天嗎？')) {
-                    days.value.splice(currentDayIndex.value, 1);
-                    currentDayIndex.value = 0;
+            const resetData = () => {
+                if(confirm('要重新恢復為預設行程嗎？')) {
+                    days.value = JSON.parse(JSON.stringify(defaultDays));
                 }
             };
 
-            // 本地存儲
             watch(days, (newVal) => {
-                localStorage.setItem('trip_planner_v3', JSON.stringify(newVal));
+                localStorage.setItem('busan_luxury_2026', JSON.stringify(newVal));
             }, { deep: true });
 
             onMounted(() => {
-                const saved = localStorage.getItem('trip_planner_v3');
-                if (saved) days.value = JSON.parse(saved);
+                const saved = localStorage.getItem('busan_luxury_2026');
+                if (saved) {
+                    days.value = JSON.parse(saved);
+                } else {
+                    days.value = JSON.parse(JSON.stringify(defaultDays));
+                }
             });
 
-            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, addNewDay, saveItem, deleteItem, removeDay, openGoogleMaps };
+            return { days, currentDayIndex, currentDayItems, showModal, newItem, mapUrl, saveItem, deleteItem, openGoogleMaps, resetData };
         }
     }).mount('#app')
 </script>
 
 <style>
-    @keyframes slide-up {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-    }
-    .animate-slide-up { animation: slide-up 0.3s ease-out; }
+    @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 </style>
 </body>
 </html>
